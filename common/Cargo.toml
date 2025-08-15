@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "common"
 version = "0.0.1"
 authors = ["Alex Kovalov <alexkovalevkpi@gmail.com>"]
 
@@ -17,4 +17,4 @@ repository = "https://github.com/xairaven/abit-rs"
 workspace = true
 
 [dependencies]
-common = { path = "../common" }
+thiserror = "2.0.14"

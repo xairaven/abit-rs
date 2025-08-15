@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["cli"]
+members = ["cli", "common"]
 
 [profile.release]
 lto = true
