@@ -11,9 +11,14 @@ async fn main() -> () {
         },
     };
 
-    // Logging setup
-    logging::setup(&config.log_level, &config.log_format).unwrap_or_else(|error| {
-        println!("ERROR: Logger initialization failed. {}", error);
+    logging::LogSettings {
+        app_name: config.app_name,
+        log_level: config.log_level,
+        format: config.log_format,
+    }
+    .setup()
+    .unwrap_or_else(|error| {
+        eprintln!("ERROR: Logger initialization failed. {}", error);
         std::process::exit(1);
     });
 
