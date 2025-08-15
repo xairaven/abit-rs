@@ -1,3 +1,6 @@
+# dotenv file
+.env
+
 # Resources needed for development
 dev-resources
 
