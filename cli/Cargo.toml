@@ -1,0 +1,19 @@
+[package]
+name = "cli"
+version = "0.0.1"
+authors = ["Alex Kovalov <alexkovalevkpi@gmail.com>"]
+
+edition = "2024"
+rust-version = "1.89"
+
+categories = ["simulation"]
+keywords = ["applicants", "education"]
+
+readme = "../README.md"
+license = "MIT"
+repository = "https://github.com/xairaven/abit-rs"
+
+[lints]
+workspace = true
+
+[dependencies]
