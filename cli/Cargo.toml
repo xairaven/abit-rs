@@ -17,6 +17,8 @@ repository = "https://github.com/xairaven/abit-rs"
 workspace = true
 
 [dependencies]
+common = { path = "../common" }
 edbo_core = { path = "../edbo_core" }
 
+log = "0.4.27"
 tokio = { version = "1.47.1", features = ["full"] }
