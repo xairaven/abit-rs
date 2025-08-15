@@ -6,7 +6,7 @@ async fn main() -> () {
     let config = match common::env::from_env() {
         Ok(config) => config,
         Err(error) => {
-            eprintln!("ERROR: {}", error);
+            eprintln!("Environment file error. {}", error);
             std::process::exit(1);
         },
     };
@@ -18,9 +18,12 @@ async fn main() -> () {
     }
     .setup()
     .unwrap_or_else(|error| {
-        eprintln!("ERROR: Logger initialization failed. {}", error);
+        eprintln!("Logger initialization error. {}", error);
         std::process::exit(1);
     });
+
+    log::info!("App started.");
+    log::info!("Logger initialized.");
 
     let client = match EdboClient::init().await {
         Ok(client) => client,
