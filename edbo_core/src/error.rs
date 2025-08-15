@@ -3,6 +3,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum CoreError {
-    #[error("Dotenv loading error.")]
+    #[error("Configuration loading error: {0}")]
     Env(#[from] EnvError),
 }

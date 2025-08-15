@@ -1,10 +1,14 @@
 use crate::error::CoreError;
 
-pub fn process() -> Result<(), CoreError> {
-    let config = env::from_env()?;
-    dbg!(&config);
+pub struct EdboClient {}
 
-    Ok(())
+impl EdboClient {
+    pub async fn init() -> Result<Self, CoreError> {
+        let config = env::from_env()?;
+        dbg!(config);
+
+        Ok(EdboClient {})
+    }
 }
 
 mod env;
