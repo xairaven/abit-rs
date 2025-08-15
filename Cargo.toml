@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["cli", "common"]
+members = ["cli", "edbo_core"]
 
 [profile.release]
 lto = true

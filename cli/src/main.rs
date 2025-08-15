@@ -1,3 +1,4 @@
-fn main() {
-    common::hello_world();
+#[tokio::main]
+async fn main() -> () {
+    edbo_core::process();
 }
