@@ -1,8 +1,10 @@
 use common::logging;
 
+pub mod env;
+
 #[tokio::main]
 async fn main() -> () {
-    let config = match common::env::from_env() {
+    let config = match env::from_env() {
         Ok(config) => config,
         Err(error) => {
             eprintln!("Environment file error. {}", error);
