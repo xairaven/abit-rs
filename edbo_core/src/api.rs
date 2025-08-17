@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum RequestError {
+pub enum ApiError {
     #[error("Failed to parse URL. {0}")]
     FailedToParseUrl(url::ParseError),
 

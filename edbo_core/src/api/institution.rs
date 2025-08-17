@@ -1,12 +1,14 @@
+use crate::api::{ApiError, ExportFormat};
 use crate::dto::institution::InstitutionDto;
 use crate::error::CoreError;
 use crate::model::institution::Institution;
-use crate::request::{ExportFormat, RequestError};
 use url::Url;
 
 pub async fn list() -> Result<Vec<Institution>, CoreError> {
+    type Error = ApiError;
+
     const BASE_URL: &str = "https://registry.edbo.gov.ua/api/universities/";
-    let mut url = Url::parse(BASE_URL).map_err(RequestError::FailedToParseUrl)?;
+    let mut url = Url::parse(BASE_URL).map_err(Error::FailedToParseUrl)?;
 
     const PARAMETERS: InstitutionsApi = InstitutionsApi {
         category: None,
@@ -17,18 +19,12 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
 
     let client = reqwest::Client::builder()
         .build()
-        .map_err(RequestError::FailedBuildClient)?;
+        .map_err(Error::FailedBuildClient)?;
 
-    let response = client
-        .get(url)
-        .send()
-        .await
-        .map_err(RequestError::RequestFailed)?;
+    let response = client.get(url).send().await.map_err(Error::RequestFailed)?;
 
-    let dto_list: Vec<InstitutionDto> = response
-        .json()
-        .await
-        .map_err(RequestError::JsonParseFailed)?;
+    let dto_list: Vec<InstitutionDto> =
+        response.json().await.map_err(Error::JsonParseFailed)?;
 
     let mut list: Vec<Institution> = Vec::with_capacity(dto_list.len());
     for dto in dto_list {
