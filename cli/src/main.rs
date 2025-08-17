@@ -1,5 +1,4 @@
 use common::logging;
-use edbo_core::EdboClient;
 
 #[tokio::main]
 async fn main() -> () {
@@ -25,7 +24,7 @@ async fn main() -> () {
     log::info!("App started.");
     log::info!("Logger initialized.");
 
-    let client = match EdboClient::init().await {
+    match edbo_core::process().await {
         Ok(client) => client,
         Err(error) => {
             dbg!(error);

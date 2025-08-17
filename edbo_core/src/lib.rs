@@ -1,11 +1,18 @@
 use crate::error::CoreError;
 
-pub struct EdboClient {}
-
-impl EdboClient {
-    pub async fn init() -> Result<Self, CoreError> {
-        Ok(EdboClient {})
-    }
+pub async fn process() -> Result<(), CoreError> {
+    request::universities::list()
+        .await
+        .map_err(CoreError::RequestError)
 }
 
-mod error;
+pub mod error;
+
+pub mod dto {
+    pub mod universities;
+}
+pub mod model {
+    pub mod region;
+    pub mod university;
+}
+pub mod request;
