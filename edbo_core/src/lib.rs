@@ -14,6 +14,7 @@ pub mod dto {
     pub mod institution;
 }
 pub mod model {
+    pub mod degree;
     pub mod institution;
     pub mod region;
 }
