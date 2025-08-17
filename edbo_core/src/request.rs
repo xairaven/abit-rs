@@ -32,4 +32,4 @@ impl ExportFormat {
     }
 }
 
-pub mod universities;
+pub mod institution;

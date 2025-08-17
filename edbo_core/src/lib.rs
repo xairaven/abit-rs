@@ -1,18 +1,20 @@
 use crate::error::CoreError;
 
 pub async fn process() -> Result<(), CoreError> {
-    request::universities::list()
-        .await
-        .map_err(CoreError::RequestError)
+    let a = request::institution::list().await?;
+
+    dbg!(a);
+
+    Ok(())
 }
 
 pub mod error;
 
 pub mod dto {
-    pub mod universities;
+    pub mod institution;
 }
 pub mod model {
+    pub mod institution;
     pub mod region;
-    pub mod university;
 }
 pub mod request;

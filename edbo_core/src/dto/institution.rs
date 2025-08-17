@@ -1,16 +1,16 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct UniversityDto {
+pub struct InstitutionDto {
     pub university_name: String,
     pub university_id: String,
     pub university_parent_id: Option<String>,
     pub university_short_name: Option<String>,
     pub university_name_en: Option<String>,
-    pub is_from_crimea: Option<String>,
+    pub is_from_crimea: String,
     pub registration_year: Option<String>,
-    pub university_type_name: String,
-    pub university_financing_type_name: String,
+    pub university_type_name: Option<String>,
+    pub university_financing_type_name: Option<String>,
     pub university_governance_type_name: Option<String>,
     pub post_index_u: String,
     pub katottgcodeu: String,

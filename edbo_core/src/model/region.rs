@@ -1,79 +1,65 @@
-use strum_macros::{Display, EnumString};
+use crate::model::institution::InstitutionError;
 
-#[derive(Debug, EnumString, Display)]
+#[derive(Debug)]
 pub enum Region {
-    #[strum(serialize = "Вінницька область")]
     Vinnytsia,
-
-    #[strum(serialize = "Волинська область")]
     Volyn,
-
-    #[strum(serialize = "Дніпропетровська область")]
     Dnipropetrovsk,
-
-    #[strum(serialize = "Донецька область")]
     Donetsk,
-
-    #[strum(serialize = "Житомирська область")]
     Zhytomyr,
-
-    #[strum(serialize = "Закарпатська область")]
     Zakarpattia,
-
-    #[strum(serialize = "Запорізька область")]
     Zaporizhzhia,
-
-    #[strum(serialize = "Івано-Франківська область")]
     IvanoFrankivsk,
-
-    #[strum(serialize = "Київська область")]
     Kyiv,
-
-    #[strum(serialize = "Кіровоградська область")]
     Kirovohrad,
-
-    #[strum(serialize = "Луганська область")]
     Luhansk,
-
-    #[strum(serialize = "Львівська область")]
     Lviv,
-
-    #[strum(serialize = "Миколаївська область")]
     Mykolaiv,
-
-    #[strum(serialize = "Одеська область")]
     Odesa,
-
-    #[strum(serialize = "Полтавська область")]
     Poltava,
-
-    #[strum(serialize = "Рівненська область")]
     Rivne,
-
-    #[strum(serialize = "Сумська область")]
     Sumy,
-
-    #[strum(serialize = "Тернопільська область")]
     Ternopil,
-
-    #[strum(serialize = "Харківська область")]
     Kharkiv,
-
-    #[strum(serialize = "Херсонська область")]
     Kherson,
-
-    #[strum(serialize = "Хмельницька область")]
     Khmelnytskyi,
-
-    #[strum(serialize = "Черкаська область")]
     Cherkasy,
-
-    #[strum(serialize = "Чернівецька область")]
     Chernivtsi,
-
-    #[strum(serialize = "Чернігівська область")]
     Chernihiv,
-
-    #[strum(serialize = "м. Київ")]
     KyivCity,
+}
+
+impl TryFrom<&str> for Region {
+    type Error = InstitutionError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "Вінницька обл." => Ok(Region::Vinnytsia),
+            "Волинська обл." => Ok(Region::Volyn),
+            "Дніпропетровська обл." => Ok(Region::Dnipropetrovsk),
+            "Донецька обл." => Ok(Region::Donetsk),
+            "Житомирська обл." => Ok(Region::Zhytomyr),
+            "Закарпатська обл." => Ok(Region::Zakarpattia),
+            "Запорізька обл." => Ok(Region::Zaporizhzhia),
+            "Івано-Франківська обл." => Ok(Region::IvanoFrankivsk),
+            "Київська обл." => Ok(Region::Kyiv),
+            "Кіровоградська обл." => Ok(Region::Kirovohrad),
+            "Луганська обл." => Ok(Region::Luhansk),
+            "Львівська обл." => Ok(Region::Lviv),
+            "Миколаївська обл." => Ok(Region::Mykolaiv),
+            "Одеська обл." => Ok(Region::Odesa),
+            "Полтавська обл." => Ok(Region::Poltava),
+            "Рівненська обл." => Ok(Region::Rivne),
+            "Сумська обл." => Ok(Region::Sumy),
+            "Тернопільська обл." => Ok(Region::Ternopil),
+            "Харківська обл." => Ok(Region::Kharkiv),
+            "Херсонська обл." => Ok(Region::Kherson),
+            "Хмельницька обл." => Ok(Region::Khmelnytskyi),
+            "Черкаська обл." => Ok(Region::Cherkasy),
+            "Чернівецька обл." => Ok(Region::Chernivtsi),
+            "Чернігівська обл." => Ok(Region::Chernihiv),
+            "м. Київ" => Ok(Region::KyivCity),
+            _ => Err(Self::Error::UnknownRegion(value.to_string())),
+        }
+    }
 }

@@ -1,14 +1,15 @@
-use crate::dto::universities::UniversityDto;
-use crate::model::university::InstitutionCategory;
+use crate::dto::institution::InstitutionDto;
+use crate::error::CoreError;
+use crate::model::institution::Institution;
 use crate::request::{ExportFormat, RequestError};
 use url::Url;
 
-pub async fn list() -> Result<(), RequestError> {
+pub async fn list() -> Result<Vec<Institution>, CoreError> {
     const BASE_URL: &str = "https://registry.edbo.gov.ua/api/universities/";
     let mut url = Url::parse(BASE_URL).map_err(RequestError::FailedToParseUrl)?;
 
-    const PARAMETERS: UniversitiesApi = UniversitiesApi {
-        category: Some(InstitutionCategory::HigherEducation as u8),
+    const PARAMETERS: InstitutionsApi = InstitutionsApi {
+        category: None,
         region_code: None,
         export_format: Some(ExportFormat::Json.into_static_str()),
     };
@@ -24,23 +25,27 @@ pub async fn list() -> Result<(), RequestError> {
         .await
         .map_err(RequestError::RequestFailed)?;
 
-    let list: Vec<UniversityDto> = response
+    let dto_list: Vec<InstitutionDto> = response
         .json()
         .await
         .map_err(RequestError::JsonParseFailed)?;
 
-    dbg!(list);
+    let mut list: Vec<Institution> = Vec::with_capacity(dto_list.len());
+    for dto in dto_list {
+        let value = Institution::try_from(dto)?;
+        list.push(value);
+    }
 
-    Ok(())
+    Ok(list)
 }
 
-pub struct UniversitiesApi {
-    pub category: Option<u8>,
+pub struct InstitutionsApi {
+    pub category: Option<u16>,
     pub region_code: Option<u8>,
     pub export_format: Option<&'static str>,
 }
 
-impl UniversitiesApi {
+impl InstitutionsApi {
     pub fn url_append_parameters(&self, url: &mut Url) {
         const CATEGORY_KEY: &str = "ut";
         const REGION_CODE_KEY: &str = "lc";
