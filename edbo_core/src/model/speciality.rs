@@ -233,8 +233,80 @@ define_specialities! {
     }
 
     // UA: (G) Інженерія, виробництво та будівництво
+    EngineeringManufacturingConstruction {
+        { code: "G1", ua: "Хімічні технології та інженерія", ChemicalEngineering }
+        { code: "G2", ua: "Технології захисту навколишнього середовища", EnvironmentalProtectionTechnology }
+        { code: "G3", ua: "Електрична інженерія", ElectricityEngineering }
+        { code: "G4", ua: "Енерговиробництво (за спеціалізацією)", ElectricityAndEnergy }
+        { code: "G5", ua: "Електроніка, електронні комунікації, приладобудування та радіотехніка", Electronics }
+        { code: "G6", ua: "Інформаційно-вимірювальні технології", InformationMeasuremenTechnologies }
+        { code: "G7", ua: "Автоматизація, комп’ютерно-інтегровані технології та робототехніка", ElectronicsAutomation }
+        { code: "G8", ua: "Матеріалознавство", MaterialsScience }
+        { code: "G9", ua: "Прикладна механіка", AppliedMechanics }
+        { code: "G10", ua: "Металургія", Metallurgy }
+        { code: "G11", ua: "Машинобудування (за спеціалізаціями)", Engineering }
+        { code: "G12", ua: "Авіаційна та ракетно-космічна техніка", AviationSpaceTechnology }
+        { code: "G13", ua: "Харчові технології", FoodProcessing }
+        { code: "G14", ua: "Деревообробні та меблеві технології", WoodworkingFurnitureTechnologies }
+        { code: "G15", ua: "Технології легкої промисловості", Textiles }
+        { code: "G16", ua: "Гірництво та нафтогазові технології", MiningExtraction }
+        { code: "G17", ua: "Архітектура та містобудування", ArchitectureTownPlanning }
+        { code: "G18", ua: "Геодезія та землеустрій", GeodesyLandManagement }
+        { code: "G19", ua: "Будівництво та цивільна інженерія", BuildingCivilEngineering }
+        { code: "G20", ua: "Видавництво та поліграфія", PublishingPrinting }
+        { code: "G21", ua: "Біотехнології та біоінженерія", BiotechnologyBioengineering }
+        { code: "G22", ua: "Біомедична інженерія", BiomedicalEngineering }
+    }
+
     // UA: (H) Сільське, лісове, рибне господарство та ветеринарна медицина
+    AgricultureForestryFisheriesVeterinary {
+        { code: "H1", ua: "Агрономія", Agronomy }
+        { code: "H2", ua: "Тваринництво", Livestock }
+        { code: "H3", ua: "Садово-паркове господарство", GardeningAndLandscaping }
+        { code: "H4", ua: "Лісове господарство", Forestry }
+        { code: "H5", ua: "Водні біоресурси та аквакультура", AquaticBioresourcesAquaculture }
+        { code: "H6", ua: "Ветеринарна медицина", VeterinaryMedicine }
+        { code: "H7", ua: "Агроінженерія", AgriculturalEngineering }
+    }
+
     // UA: (I) Охорона здоров’я та соціальне забезпечення
+    HealthcareSocialSecurity {
+        { code: "I1", ua: "Стоматологія", Dentistry }
+        { code: "I2", ua: "Медицина", Medicine }
+        { code: "I3", ua: "Педіатрія", Pediatrics }
+        { code: "I4", ua: "Медична психологія", MedicalPsychology }
+        { code: "I5", ua: "Медсестринство (за спеціалізаціями)", Nursing }
+        { code: "I6", ua: "Технології медичної діагностики та лікування (за спеціалізаціями)", MedicalDiagnosticTreatmentTechnology }
+        { code: "I7", ua: "Терапія та реабілітація (за спеціалізаціями)", TherapyRehabilitation }
+        { code: "I8", ua: "Фармація (за спеціалізаціями)", Pharmacy }
+        { code: "I9", ua: "Громадське здоров’я", PublicHealth }
+        { code: "I10", ua: "Соціальна робота та консультування", SocialWorkCounseling }
+        { code: "I11", ua: "Дитячі та молодіжні служби", ChildrenYouthServices }
+    }
+
     // UA: (J) Транспорт та послуги
+    TransportServices {
+        { code: "J1", ua: "Послуги краси", BeautyServices }
+        { code: "J2", ua: "Готельно-ресторанна справа та кейтеринг", HotelRestaurantsCatering }
+        { code: "J3", ua: "Туризм та рекреація", TravelTourismLeisure }
+        { code: "J4", ua: "Охорона праці", OccupationalHealthSafety }
+        { code: "J5", ua: "Морський та внутрішній водний транспорт", SeaInlandWaterwayTransport }
+        { code: "J6", ua: "Авіаційний транспорт", AirTransport }
+        { code: "J7", ua: "Залізничний транспорт", RailwayTransport }
+        { code: "J8", ua: "Автомобільний транспорт", RoadTransport }
+    }
+
     // UA: (K) Безпека та оборона
+    SecurityDefense {
+        { code: "K1", ua: "Державна безпека", StateSecurity }
+        { code: "K2", ua: "Безпека державного кордону", StateBorderSecurity }
+        { code: "K3", ua: "Національна безпека (за окремими сферами забезпечення і видами діяльності)", NationalSecurity }
+        { code: "K4", ua: "Управління інформаційною безпекою", InformationSecurityManagement }
+        { code: "K5", ua: "Військове управління (за видами збройних сил)", MilitaryAdministration }
+        { code: "K6", ua: "Забезпечення військ (сил)", TroopSupply }
+        { code: "K7", ua: "Озброєння та військова техніка", WeaponsMilitaryEquipment }
+        { code: "K8", ua: "Пожежна безпека", FireSafety }
+        { code: "K9", ua: "Правоохоронна діяльність", LawEnforcementActivities }
+        { code: "K10", ua: "Цивільна безпека", CivilSecurity }
+    }
 }
