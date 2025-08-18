@@ -1,7 +1,5 @@
 use common::logging;
 
-pub mod env;
-
 #[tokio::main]
 async fn main() -> () {
     let config = match env::from_env() {
@@ -26,7 +24,11 @@ async fn main() -> () {
     log::info!("App started.");
     log::info!("Logger initialized.");
 
-    match edbo_core::process().await {
+    let settings = edbo_core::InitSettings {
+        database_url: config.database_url,
+    };
+
+    match edbo_core::process(settings).await {
         Ok(client) => client,
         Err(error) => {
             dbg!(error);
@@ -34,3 +36,5 @@ async fn main() -> () {
         },
     };
 }
+
+pub mod env;
