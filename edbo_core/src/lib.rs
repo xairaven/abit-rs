@@ -18,13 +18,8 @@ pub struct InitSettings {
 pub mod api;
 pub mod database;
 pub mod error;
+pub mod model;
 
 pub mod dto {
     pub mod institution;
-}
-pub mod model {
-    pub mod degree;
-    pub mod institution;
-    pub mod region;
-    pub mod speciality;
 }

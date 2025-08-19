@@ -1,4 +1,4 @@
-use crate::model::institution::InstitutionError;
+use thiserror::Error;
 
 #[derive(Debug)]
 pub enum Region {
@@ -30,7 +30,7 @@ pub enum Region {
 }
 
 impl TryFrom<&str> for Region {
-    type Error = InstitutionError;
+    type Error = RegionError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
@@ -62,4 +62,10 @@ impl TryFrom<&str> for Region {
             _ => Err(Self::Error::UnknownRegion(value.to_string())),
         }
     }
+}
+
+#[derive(Debug, Error)]
+pub enum RegionError {
+    #[error("Failed to parse region '{0}'")]
+    UnknownRegion(String),
 }

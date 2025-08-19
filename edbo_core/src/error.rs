@@ -1,6 +1,6 @@
 use crate::api;
 use crate::database::DbError;
-use crate::model::institution::InstitutionError;
+use crate::model::ModelError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -11,6 +11,6 @@ pub enum CoreError {
     #[error("Database Error. {0}")]
     DbError(#[from] DbError),
 
-    #[error("Institution Error. {0}")]
-    Institution(#[from] InstitutionError),
+    #[error("Model Error. {0}")]
+    ModelError(#[from] ModelError),
 }

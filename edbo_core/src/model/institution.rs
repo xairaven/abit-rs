@@ -1,4 +1,5 @@
 use crate::dto::institution::InstitutionDto;
+use crate::model::ModelError;
 use crate::model::region::Region;
 use std::num::ParseIntError;
 use thiserror::Error;
@@ -18,15 +19,13 @@ pub struct Institution {
 }
 
 impl TryFrom<InstitutionDto> for Institution {
-    type Error = InstitutionError;
+    type Error = ModelError;
 
     fn try_from(value: InstitutionDto) -> Result<Self, Self::Error> {
         let parent_id = if let Some(parent_id) = value.university_parent_id {
-            Some(
-                parent_id
-                    .parse::<u16>()
-                    .map_err(Self::Error::FailedParseParentId)?,
-            )
+            Some(parent_id.parse::<u16>().map_err(|err| {
+                ModelError::Institution(InstitutionError::FailedParseParentId(err))
+            })?)
         } else {
             None
         };
@@ -42,20 +41,20 @@ impl TryFrom<InstitutionDto> for Institution {
         let is_from_crimea = matches!(value.is_from_crimea.as_str(), "так");
 
         let registration_year = if let Some(year) = value.registration_year {
-            Some(
-                year.parse::<u16>()
-                    .map_err(Self::Error::FailedParseRegistrationYear)?,
-            )
+            Some(year.parse::<u16>().map_err(|err| {
+                ModelError::Institution(InstitutionError::FailedParseRegistrationYear(
+                    err,
+                ))
+            })?)
         } else {
             None
         };
 
         Ok(Self {
             name: value.university_name,
-            id: value
-                .university_id
-                .parse()
-                .map_err(Self::Error::FailedParseId)?,
+            id: value.university_id.parse().map_err(|err| {
+                ModelError::Institution(InstitutionError::FailedParseId(err))
+            })?,
             parent_id,
             short_name: value.university_short_name,
             english_name,
@@ -70,7 +69,8 @@ impl TryFrom<InstitutionDto> for Institution {
                     .unwrap_or_default()
                     .as_str(),
             ),
-            region: Region::try_from(value.region_name_u.as_str())?,
+            region: Region::try_from(value.region_name_u.as_str())
+                .map_err(ModelError::Region)?,
         })
     }
 }
@@ -162,9 +162,6 @@ impl From<&str> for OwnershipForm {
 
 #[derive(Debug, Error)]
 pub enum InstitutionError {
-    #[error("Failed to parse region '{0}'")]
-    UnknownRegion(String),
-
     #[error("Failed to parse institution id. {0}")]
     FailedParseId(ParseIntError),
 
