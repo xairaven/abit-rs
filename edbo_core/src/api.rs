@@ -1,4 +1,11 @@
+use std::fmt::Display;
 use thiserror::Error;
+use url::Url;
+
+pub mod links {
+    pub const MAIN: &str = "https://vstup.edbo.gov.ua";
+    pub const REGISTRY: &str = "https://registry.edbo.gov.ua/api";
+}
 
 #[derive(Debug, Error)]
 pub enum ApiError {
@@ -32,4 +39,17 @@ impl ExportFormat {
     }
 }
 
+pub trait ApiFetcher {
+    fn append_parameters_to_url(&self, url: &mut Url);
+
+    fn append_optional_parameter<T: Display>(
+        url: &mut Url, key: &str, value: &Option<T>,
+    ) {
+        if let Some(value) = value {
+            url.query_pairs_mut().append_pair(key, &value.to_string());
+        }
+    }
+}
+
 pub mod institution;
+pub mod offers_university;

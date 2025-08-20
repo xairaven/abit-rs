@@ -1,4 +1,5 @@
-use crate::api::{ApiError, ExportFormat};
+use crate::api;
+use crate::api::{ApiError, ApiFetcher, ExportFormat};
 use crate::dto::institution::InstitutionDto;
 use crate::error::CoreError;
 use crate::model::institution::Institution;
@@ -7,15 +8,15 @@ use url::Url;
 pub async fn list() -> Result<Vec<Institution>, CoreError> {
     type Error = ApiError;
 
-    const BASE_URL: &str = "https://registry.edbo.gov.ua/api/universities/";
-    let mut url = Url::parse(BASE_URL).map_err(Error::FailedToParseUrl)?;
+    let base_url = format!("{}/universities/", api::links::REGISTRY);
+    let mut url = Url::parse(&base_url).map_err(Error::FailedToParseUrl)?;
 
     const PARAMETERS: InstitutionsApi = InstitutionsApi {
         category: None,
         region_code: None,
         export_format: Some(ExportFormat::Json.into_static_str()),
     };
-    PARAMETERS.url_append_parameters(&mut url);
+    PARAMETERS.append_parameters_to_url(&mut url);
 
     let client = reqwest::Client::builder()
         .build()
@@ -41,22 +42,14 @@ pub struct InstitutionsApi {
     pub export_format: Option<&'static str>,
 }
 
-impl InstitutionsApi {
-    pub fn url_append_parameters(&self, url: &mut Url) {
+impl ApiFetcher for InstitutionsApi {
+    fn append_parameters_to_url(&self, url: &mut Url) {
         const CATEGORY_KEY: &str = "ut";
         const REGION_CODE_KEY: &str = "lc";
         const EXPORT_FORMAT_KEY: &str = "exp";
 
-        if let Some(category_value) = self.category {
-            url.query_pairs_mut()
-                .append_pair(CATEGORY_KEY, &category_value.to_string());
-        }
-        if let Some(region_code) = self.region_code {
-            url.query_pairs_mut()
-                .append_pair(REGION_CODE_KEY, &region_code.to_string());
-        }
-        if let Some(format) = self.export_format {
-            url.query_pairs_mut().append_pair(EXPORT_FORMAT_KEY, format);
-        }
+        Self::append_optional_parameter(url, CATEGORY_KEY, &self.category);
+        Self::append_optional_parameter(url, REGION_CODE_KEY, &self.region_code);
+        Self::append_optional_parameter(url, EXPORT_FORMAT_KEY, &self.export_format);
     }
 }

@@ -21,8 +21,8 @@ pub struct Institution {
 impl TryFrom<InstitutionDto> for Institution {
     type Error = ModelError;
 
-    fn try_from(value: InstitutionDto) -> Result<Self, Self::Error> {
-        let parent_id = if let Some(parent_id) = value.university_parent_id {
+    fn try_from(dto: InstitutionDto) -> Result<Self, Self::Error> {
+        let parent_id = if let Some(parent_id) = dto.university_parent_id {
             Some(parent_id.parse::<u16>().map_err(|err| {
                 ModelError::Institution(InstitutionError::FailedParseParentId(err))
             })?)
@@ -30,17 +30,17 @@ impl TryFrom<InstitutionDto> for Institution {
             None
         };
 
-        let english_name = if let Some(value) = &value.university_name_en
+        let english_name = if let Some(value) = &dto.university_name_en
             && value.trim().is_empty()
         {
             None
         } else {
-            value.university_name_en
+            dto.university_name_en
         };
 
-        let is_from_crimea = matches!(value.is_from_crimea.as_str(), "так");
+        let is_from_crimea = matches!(dto.is_from_crimea.as_str(), "так");
 
-        let registration_year = if let Some(year) = value.registration_year {
+        let registration_year = if let Some(year) = dto.registration_year {
             Some(year.parse::<u16>().map_err(|err| {
                 ModelError::Institution(InstitutionError::FailedParseRegistrationYear(
                     err,
@@ -51,25 +51,24 @@ impl TryFrom<InstitutionDto> for Institution {
         };
 
         Ok(Self {
-            name: value.university_name,
-            id: value.university_id.parse().map_err(|err| {
+            name: dto.university_name,
+            id: dto.university_id.parse().map_err(|err| {
                 ModelError::Institution(InstitutionError::FailedParseId(err))
             })?,
             parent_id,
-            short_name: value.university_short_name,
+            short_name: dto.university_short_name,
             english_name,
             is_from_crimea,
             registration_year,
             category: InstitutionCategory::from(
-                value.university_type_name.unwrap_or_default().as_str(),
+                dto.university_type_name.unwrap_or_default().as_str(),
             ),
             ownership_form: OwnershipForm::from(
-                value
-                    .university_financing_type_name
+                dto.university_financing_type_name
                     .unwrap_or_default()
                     .as_str(),
             ),
-            region: Region::try_from(value.region_name_u.as_str())
+            region: Region::try_from(dto.region_name_u.as_str())
                 .map_err(ModelError::Region)?,
         })
     }
