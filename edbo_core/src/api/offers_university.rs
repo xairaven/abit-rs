@@ -36,8 +36,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
         tokio::time::Duration::from_millis(500);
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
-    let mut offers: Vec<OffersUniversityDto> = vec![];
-    let mut overall_offers: Vec<OffersUniversity> = vec![];
+    let mut offers: Vec<OffersUniversity> = vec![];
     for (_, speciality) in speciality::ALL_SPECIALITIES.iter() {
         parameters.speciality = Some(speciality.code().to_string());
         let mut url = url.clone();
@@ -50,20 +49,26 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
             .send()
             .await
             .map_err(Error::RequestFailed)?;
+        log::info!(
+            "Offers <-> Institution list response success for {} speciality.",
+            speciality.code()
+        );
 
-        let mut dto_list: Vec<OffersUniversityDto> =
-            response.json().await.map_err(Error::JsonParseFailed)?;
-        offers.append(&mut dto_list);
+        let text = response
+            .text()
+            .await
+            .map_err(Error::FailedToGetResponseText)?;
+        log::debug!("Text from response: {:?}", text);
+        let dto_list: Vec<OffersUniversityDto> =
+            serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
 
-        let mut list: Vec<OffersUniversity> = Vec::with_capacity(dto_list.len());
         for dto in dto_list {
             let value = OffersUniversity::try_from(dto)?;
-            list.push(value);
+            offers.push(value);
         }
-        overall_offers.append(&mut list);
     }
 
-    Ok(overall_offers)
+    Ok(offers)
 }
 
 pub struct OffersUniversitiesApi {

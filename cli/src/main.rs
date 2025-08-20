@@ -31,7 +31,8 @@ async fn main() -> () {
     match edbo_core::process(settings).await {
         Ok(client) => client,
         Err(error) => {
-            dbg!(error);
+            dbg!(&error);
+            log::error!("{}", error);
             return;
         },
     };

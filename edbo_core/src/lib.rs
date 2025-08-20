@@ -6,6 +6,12 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
     let institutions = api::institution::list().await?;
     let offers_with_institutions = api::offers_university::list().await?;
 
+    log::info!("INSTITUTIONS: \n ----- \n {:?} \n -------", institutions);
+    log::info!(
+        "Offers <-> Institutions: \n ----- \n {:?} \n -------",
+        offers_with_institutions
+    );
+
     database::init(&settings).await?;
 
     Ok(())

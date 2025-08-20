@@ -19,7 +19,10 @@ pub enum ApiError {
     RequestFailed(reqwest::Error),
 
     #[error("Failed to parse JSON. {0}")]
-    JsonParseFailed(reqwest::Error),
+    JsonParseFailed(serde_json::Error),
+
+    #[error("Failed to get response text.")]
+    FailedToGetResponseText(reqwest::Error),
 }
 
 #[derive(Debug)]

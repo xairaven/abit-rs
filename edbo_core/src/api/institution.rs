@@ -23,9 +23,15 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
         .map_err(Error::FailedBuildClient)?;
 
     let response = client.get(url).send().await.map_err(Error::RequestFailed)?;
+    log::info!("Institution list response success.");
 
+    let text = response
+        .text()
+        .await
+        .map_err(Error::FailedToGetResponseText)?;
+    log::debug!("Text from response: {:?}", text);
     let dto_list: Vec<InstitutionDto> =
-        response.json().await.map_err(Error::JsonParseFailed)?;
+        serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
 
     let mut list: Vec<Institution> = Vec::with_capacity(dto_list.len());
     for dto in dto_list {
