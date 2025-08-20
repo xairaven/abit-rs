@@ -1,5 +1,5 @@
 use crate::api;
-use crate::api::{ApiError, ApiFetcher, ExportFormat};
+use crate::api::{ApiError, ApiFetcherUrl, ExportFormat};
 use crate::dto::institution::InstitutionDto;
 use crate::error::CoreError;
 use crate::model::institution::Institution;
@@ -48,7 +48,7 @@ pub struct InstitutionsApi {
     pub export_format: Option<&'static str>,
 }
 
-impl ApiFetcher for InstitutionsApi {
+impl ApiFetcherUrl for InstitutionsApi {
     fn append_parameters_to_url(&self, url: &mut Url) {
         const CATEGORY_KEY: &str = "ut";
         const REGION_CODE_KEY: &str = "lc";

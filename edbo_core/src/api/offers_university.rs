@@ -1,17 +1,19 @@
 use crate::api;
-use crate::api::{ApiError, ApiFetcher};
+use crate::api::{ApiError, ApiFetcherForm, ApiFetcherUrl};
 use crate::dto::offers_university::OffersUniversityDto;
 use crate::error::CoreError;
 use crate::model::degree::Degree;
 use crate::model::offers_university::OffersUniversity;
 use crate::model::{ModelError, speciality};
+use reqwest::header::{HeaderMap, HeaderValue};
+use std::collections::HashMap;
 use url::Url;
 
 pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     type Error = ApiError;
 
     let base_url = format!("{}/offers-universities/", api::links::MAIN);
-    let url = Url::parse(&base_url).map_err(Error::FailedToParseUrl)?;
+    let base_url = Url::parse(&base_url).map_err(Error::FailedToParseUrl)?;
 
     let client = reqwest::Client::builder()
         .build()
@@ -21,7 +23,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
         qualification: Some(Degree::Master.qualification().map_err(ModelError::Degree)?),
         education_base: Some(
             Degree::Bachelor
-                .qualification()
+                .education_base()
                 .map_err(ModelError::Degree)?,
         ),
         speciality: None,
@@ -36,16 +38,30 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
         tokio::time::Duration::from_millis(500);
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
+    let mut headers = HeaderMap::new();
+    headers.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"));
+
     let mut offers: Vec<OffersUniversity> = vec![];
     for (_, speciality) in speciality::ALL_SPECIALITIES.iter() {
         parameters.speciality = Some(speciality.code().to_string());
-        let mut url = url.clone();
-        parameters.append_parameters_to_url(&mut url);
 
         ticker.tick().await;
 
+        let form = parameters.create_form();
+
+        let mut headers = headers.clone();
+        let mut referer_url = base_url.clone();
+        parameters.append_parameters_to_url(&mut referer_url);
+        headers.insert(
+            "Referer",
+            HeaderValue::from_str(referer_url.as_str())
+                .map_err(Error::InvalidHeaderValue)?,
+        );
+
         let response = client
-            .post(url)
+            .post(base_url.clone())
+            .headers(headers)
+            .form(&form)
             .send()
             .await
             .map_err(Error::RequestFailed)?;
@@ -82,17 +98,34 @@ pub struct OffersUniversitiesApi {
     pub course: Option<u16>,
 }
 
-impl ApiFetcher for OffersUniversitiesApi {
-    fn append_parameters_to_url(&self, url: &mut Url) {
-        const QUALIFICATION: &str = "qualification";
-        const EDUCATION_BASE: &str = "education_base";
-        const SPECIALITY: &str = "speciality";
-        const REGION: &str = "region";
-        const UNIVERSITY: &str = "university";
-        const STUDY_PROGRAM: &str = "study_program";
-        const EDUCATION_FORM: &str = "education_form";
-        const COURSE: &str = "course";
+const QUALIFICATION: &str = "qualification";
+const EDUCATION_BASE: &str = "education_base";
+const SPECIALITY: &str = "speciality";
+const REGION: &str = "region";
+const UNIVERSITY: &str = "university";
+const STUDY_PROGRAM: &str = "study_program";
+const EDUCATION_FORM: &str = "education_form";
+const COURSE: &str = "course";
 
+impl ApiFetcherForm for OffersUniversitiesApi {
+    fn create_form(&self) -> HashMap<String, String> {
+        let mut map = HashMap::new();
+
+        Self::append_option_to_form(&mut map, QUALIFICATION, &self.qualification);
+        Self::append_option_to_form(&mut map, EDUCATION_BASE, &self.education_base);
+        Self::append_option_to_form(&mut map, SPECIALITY, &self.speciality);
+        Self::append_option_to_form(&mut map, REGION, &self.region);
+        Self::append_option_to_form(&mut map, UNIVERSITY, &self.university);
+        Self::append_option_to_form(&mut map, STUDY_PROGRAM, &self.study_program);
+        Self::append_option_to_form(&mut map, EDUCATION_FORM, &self.education_form);
+        Self::append_option_to_form(&mut map, COURSE, &self.course);
+
+        map
+    }
+}
+
+impl ApiFetcherUrl for OffersUniversitiesApi {
+    fn append_parameters_to_url(&self, url: &mut Url) {
         Self::append_optional_parameter(url, QUALIFICATION, &self.qualification);
         Self::append_optional_parameter(url, EDUCATION_BASE, &self.education_base);
         Self::append_optional_parameter(url, SPECIALITY, &self.speciality);
@@ -100,6 +133,6 @@ impl ApiFetcher for OffersUniversitiesApi {
         Self::append_optional_parameter(url, UNIVERSITY, &self.university);
         Self::append_optional_parameter(url, STUDY_PROGRAM, &self.study_program);
         Self::append_optional_parameter(url, EDUCATION_FORM, &self.education_form);
-        Self::append_optional_parameter(url, COURSE, &self.course);
+        Self::append_optional_parameter(url, COURSE, &self.course)
     }
 }

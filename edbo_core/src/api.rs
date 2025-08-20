@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use thiserror::Error;
 use url::Url;
@@ -23,6 +24,9 @@ pub enum ApiError {
 
     #[error("Failed to get response text.")]
     FailedToGetResponseText(reqwest::Error),
+
+    #[error("Invalid header value. {0}")]
+    InvalidHeaderValue(reqwest::header::InvalidHeaderValue),
 }
 
 #[derive(Debug)]
@@ -42,7 +46,7 @@ impl ExportFormat {
     }
 }
 
-pub trait ApiFetcher {
+pub trait ApiFetcherUrl {
     fn append_parameters_to_url(&self, url: &mut Url);
 
     fn append_optional_parameter<T: Display>(
@@ -50,6 +54,18 @@ pub trait ApiFetcher {
     ) {
         if let Some(value) = value {
             url.query_pairs_mut().append_pair(key, &value.to_string());
+        }
+    }
+}
+
+pub trait ApiFetcherForm {
+    fn create_form(&self) -> HashMap<String, String>;
+
+    fn append_option_to_form<T: Display>(
+        map: &mut HashMap<String, String>, key: &str, value: &Option<T>,
+    ) {
+        if let Some(value) = value {
+            map.insert(key.to_string(), value.to_string());
         }
     }
 }
