@@ -14,6 +14,7 @@ async fn main() -> () {
         app_name: config.app_name,
         log_level: config.log_level,
         format: config.log_format,
+        output: config.log_output,
     }
     .setup()
     .unwrap_or_else(|error| {

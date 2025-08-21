@@ -14,10 +14,17 @@ pub enum LogError {
     SetLoggerError(log::SetLoggerError),
 }
 
+#[derive(Debug)]
+pub enum LogOutput {
+    File,
+    Console,
+}
+
 pub struct LogSettings {
     pub app_name: String,
     pub log_level: LevelFilter,
     pub format: String,
+    pub output: LogOutput,
 }
 
 impl LogSettings {
@@ -26,22 +33,27 @@ impl LogSettings {
             return Ok(());
         }
 
-        let file_name = self.generate_file_name();
-        let file = fern::log_file(file_name).map_err(LogError::IOError)?;
+        let mut dispatcher = fern::Dispatch::new().level(self.log_level).format({
+            let format = self.format.to_string();
+            move |out, message, record| {
+                let formatted = Self::parse_format(&format, message, record);
 
-        fern::Dispatch::new()
-            .level(self.log_level)
-            .format({
-                let format = self.format.to_string();
-                move |out, message, record| {
-                    let formatted = Self::parse_format(&format, message, record);
+                out.finish(format_args!("{formatted}"))
+            }
+        });
 
-                    out.finish(format_args!("{formatted}"))
-                }
-            })
-            .chain(file)
-            .apply()
-            .map_err(LogError::SetLoggerError)
+        match self.output {
+            LogOutput::File => {
+                let file_name = self.generate_file_name();
+                let file = fern::log_file(file_name).map_err(LogError::IOError)?;
+                dispatcher = dispatcher.chain(file);
+            },
+            LogOutput::Console => {
+                dispatcher = dispatcher.chain(std::io::stdout());
+            },
+        }
+
+        dispatcher.apply().map_err(LogError::SetLoggerError)
     }
 
     fn generate_file_name(&self) -> String {

@@ -1,4 +1,5 @@
 use crate::logging;
+use common::logging::LogOutput;
 use log::LevelFilter;
 use std::env;
 use thiserror::Error;
@@ -9,6 +10,7 @@ pub struct EnvConfig {
     pub database_url: String,
     pub log_format: String,
     pub log_level: LevelFilter,
+    pub log_output: LogOutput,
 }
 
 #[derive(Debug, Error)]
@@ -24,6 +26,9 @@ pub enum EnvError {
 
     #[error("Unknown log level.")]
     UnknownLogLevel,
+
+    #[error("Unknown log output target.")]
+    UnknownLogOutput,
 }
 
 pub fn from_env() -> Result<EnvConfig, EnvError> {
@@ -50,10 +55,24 @@ pub fn from_env() -> Result<EnvConfig, EnvError> {
         .parse::<LevelFilter>()
         .map_err(|_| EnvError::UnknownLogLevel)?;
 
+    // Loading log output target
+    const LOG_OUTPUT_TARGET_KEY: &str = "LOG_OUTPUT_TARGET";
+    let log_output = match env::var(LOG_OUTPUT_TARGET_KEY)
+        .unwrap_or("file".to_string())
+        .trim()
+        .to_lowercase()
+        .as_str()
+    {
+        "file" => LogOutput::File,
+        "console" => LogOutput::Console,
+        _ => return Err(EnvError::UnknownLogOutput),
+    };
+
     Ok(EnvConfig {
         app_name,
         database_url,
         log_format,
         log_level,
+        log_output,
     })
 }
