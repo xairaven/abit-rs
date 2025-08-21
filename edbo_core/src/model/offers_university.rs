@@ -6,9 +6,7 @@ use thiserror::Error;
 #[derive(Debug)]
 pub struct OffersUniversity {
     pub university_id: u32,
-    pub university_name: String,
     pub offers: Vec<u32>,
-    pub offers_amount: i32,
 }
 
 impl TryFrom<OffersUniversityDto> for OffersUniversity {
@@ -35,9 +33,7 @@ impl TryFrom<OffersUniversityDto> for OffersUniversity {
 
         Ok(Self {
             university_id: dto.uid,
-            university_name: dto.un,
             offers,
-            offers_amount: dto.n as i32,
         })
     }
 }

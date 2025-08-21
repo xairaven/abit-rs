@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Display;
 use thiserror::Error;
@@ -66,6 +67,27 @@ pub trait ApiFetcherForm {
     ) {
         if let Some(value) = value {
             map.insert(key.to_string(), value.to_string());
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ErrorResponse {
+    pub error: String,
+    pub message: String,
+}
+
+impl ErrorResponse {
+    pub async fn handle_request_limit(&self) {
+        log::error!("Error: {}", self.error);
+        log::error!("Error Message: {}", self.message);
+
+        if self
+            .error
+            .eq("Перевищено ліміт запитів. Спробуйте пізніше!")
+        {
+            log::warn!("Sleeping 60 secs...");
+            tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
         }
     }
 }

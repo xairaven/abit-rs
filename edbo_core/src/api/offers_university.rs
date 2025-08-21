@@ -1,6 +1,6 @@
 use crate::api;
-use crate::api::{ApiError, ApiFetcherForm, ApiFetcherUrl};
-use crate::dto::offers_university::OffersUniversityDto;
+use crate::api::{ApiError, ApiFetcherForm, ApiFetcherUrl, ErrorResponse};
+use crate::dto::offers_university::OffersUniversityMapDto;
 use crate::error::CoreError;
 use crate::model::degree::Degree;
 use crate::model::offers_university::OffersUniversity;
@@ -35,7 +35,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     };
 
     const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
-        tokio::time::Duration::from_millis(500);
+        tokio::time::Duration::from_secs(2);
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
     let mut headers = HeaderMap::new();
@@ -75,10 +75,19 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
             .await
             .map_err(Error::FailedToGetResponseText)?;
         log::debug!("Text from response: {:?}", text);
-        let dto_list: Vec<OffersUniversityDto> =
-            serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
 
-        for dto in dto_list {
+        let dto_map = loop {
+            match serde_json::from_str::<OffersUniversityMapDto>(&text) {
+                Ok(value) => break value,
+                Err(_) => {
+                    let error: ErrorResponse =
+                        serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
+                    error.handle_request_limit().await;
+                },
+            };
+        };
+
+        for dto in dto_map.universities {
             let value = OffersUniversity::try_from(dto)?;
             offers.push(value);
         }
