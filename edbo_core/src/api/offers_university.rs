@@ -1,5 +1,7 @@
 use crate::api;
-use crate::api::{ApiError, ApiFetcherForm, ApiFetcherUrl, ErrorResponse};
+use crate::api::{
+    ApiError, ApiFetcherForm, ApiFetcherUrl, ErrorResponse, INTERVAL_FOR_REQUESTS,
+};
 use crate::dto::offers_university::OffersUniversityMapDto;
 use crate::error::CoreError;
 use crate::model::degree::Degree;
@@ -34,8 +36,6 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
         course: None,
     };
 
-    const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
-        tokio::time::Duration::from_secs(2);
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
     let mut headers = HeaderMap::new();

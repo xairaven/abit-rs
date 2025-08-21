@@ -9,6 +9,9 @@ pub mod links {
     pub const REGISTRY: &str = "https://registry.edbo.gov.ua/api";
 }
 
+pub const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
+    tokio::time::Duration::from_secs(2);
+
 #[derive(Debug, Error)]
 pub enum ApiError {
     #[error("Failed to parse URL. {0}")]
