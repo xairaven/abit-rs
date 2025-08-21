@@ -1,0 +1,78 @@
+use std::fmt::{Display, Formatter};
+use thiserror::Error;
+
+pub enum ApplicationStatus {
+    ApplicationReceived,
+    Pending,
+    CancelledByApplicant,
+    CancelledPriorityLost,
+    Registered,
+    Admitted,
+    Rejected,
+    CancelledByInstitution,
+    RecommendedBudget,
+    RejectedBudget,
+    AdmittedContractDecision,
+    RecommendedContract,
+    RejectedContract,
+    ToEnrollmentOrder,
+    Expelled,
+    DeactivatedEnrolled,
+}
+
+impl Display for ApplicationStatus {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            Self::ApplicationReceived => "Заява надійшла з сайту",
+            Self::Pending => "Затримано",
+            Self::CancelledByApplicant => "Скасовано вступником",
+            Self::CancelledPriorityLost => "Скасовано (втрата пріоритету)",
+            Self::Registered => "Зареєстровано",
+            Self::Admitted => "Допущено",
+            Self::Rejected => "Відмова",
+            Self::CancelledByInstitution => "Скасовано закладом освіти",
+            Self::RecommendedBudget => "Рекомендовано (бюджет)",
+            Self::RejectedBudget => "Відхилено (бюджет)",
+            Self::AdmittedContractDecision => "Допущено (контракт, за ріш. ПК)",
+            Self::RecommendedContract => "Рекомендовано (контракт)",
+            Self::RejectedContract => "Відхилено (контракт)",
+            Self::ToEnrollmentOrder => "До наказу",
+            Self::Expelled => "Відраховано",
+            Self::DeactivatedEnrolled => "Деактивовано (зараховано на навчання)",
+        };
+
+        write!(f, "{}", text)
+    }
+}
+
+impl TryFrom<i32> for ApplicationStatus {
+    type Error = ApplicationStatusError;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            1 => Ok(Self::ApplicationReceived),
+            2 => Ok(Self::Pending),
+            3 => Ok(Self::CancelledByApplicant),
+            4 => Ok(Self::CancelledPriorityLost),
+            5 => Ok(Self::Registered),
+            6 => Ok(Self::Admitted),
+            7 => Ok(Self::Rejected),
+            8 => Ok(Self::CancelledByInstitution),
+            9 => Ok(Self::RecommendedBudget),
+            10 => Ok(Self::RejectedBudget),
+            11 => Ok(Self::AdmittedContractDecision),
+            12 => Ok(Self::RecommendedContract),
+            13 => Ok(Self::RejectedContract),
+            14 => Ok(Self::ToEnrollmentOrder),
+            15 => Ok(Self::Expelled),
+            16 => Ok(Self::DeactivatedEnrolled),
+            _ => Err(Self::Error::UnknownCode(value)),
+        }
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ApplicationStatusError {
+    #[error("Unknown application status code.")]
+    UnknownCode(i32),
+}

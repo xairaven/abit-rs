@@ -2,10 +2,14 @@ use crate::model::degree::DegreeError;
 use crate::model::institution::InstitutionError;
 use crate::model::offers_university::OffersUniversityError;
 use crate::model::region::RegionError;
+use crate::model::status::ApplicationStatusError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ModelError {
+    #[error("Application Status Error. {0}")]
+    ApplicationStatus(#[from] ApplicationStatusError),
+
     #[error("Degree Error. {0}")]
     Degree(#[from] DegreeError),
 
@@ -25,4 +29,5 @@ pub mod institution;
 pub mod offers_university;
 pub mod region;
 pub mod speciality;
+pub mod status;
 pub mod study_form;
