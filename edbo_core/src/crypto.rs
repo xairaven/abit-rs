@@ -6,10 +6,11 @@ use cbc::cipher::{BlockDecryptMut, KeyIvInit};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+const CUSTOM_KEY: &str = "2025";
+
 type Aes256CbcDec = cbc::Decryptor<Aes256>;
 
 fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
-    const CUSTOM_KEY: &str = "2025";
     let multiply_key = multiply(number, prsid);
 
     let k = format!("{:x}", Sha256::digest(multiply_key));
