@@ -69,8 +69,8 @@ Table degree {
 }
 
 Table offers_university {
-  university_id integer
-  offer_id integer
+  university_id integer [not null]
+  offer_id integer [not null]
 }
 
 Ref institution_offer: offers_university.university_id > institution.id
