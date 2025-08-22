@@ -1,0 +1,77 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table institution_category {
+  id integer [primary key]
+  description varchar [not null]
+  code integer
+}
+
+Table ownership_form {
+  id integer [primary key]
+  description varchar [not null]
+}
+
+Table region {
+  id integer [primary key]
+  name varchar [not null]
+}
+
+Table institution {
+  id integer [primary key]
+  name varchar [not null]
+  parent_id integer
+  short_name varchar
+  english_name varchar
+  is_from_crimea bool [not null]
+  registration_year integer
+  category_id integer [not null]
+  ownership_form_id integer [not null]
+  region_id integer [not null]
+}
+
+Ref institution_category: institution.category_id > institution_category.id
+Ref institution_ownership: institution.ownership_form_id > ownership_form.id
+Ref institution_region: institution.region_id > region.id
+
+Table start_course {
+  id integer [primary key]
+  name varchar [not null]
+}
+
+Table application_status {
+  id integer [primary key]
+  description varchar [not null]
+}
+
+Table study_form {
+  id integer [primary key]
+  description varchar [not null]
+}
+
+Table knowledge_field {
+  code char [primary key]
+  name varchar [not null]
+}
+
+Table speciality {
+  code varchar [primary key]
+  name varchar [not null]
+  knowledge_field char [not null]
+}
+
+Ref knowledge_field_speciality: speciality.knowledge_field > knowledge_field.code
+
+Table degree {
+  id integer [primary key]
+  qualification integer
+  education_base integer
+}
+
+Table offers_university {
+  university_id integer
+  offer_id integer
+}
+
+Ref institution_offer: offers_university.university_id > institution.id
+
