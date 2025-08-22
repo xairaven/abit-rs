@@ -8,7 +8,7 @@ use thiserror::Error;
 
 type Aes256CbcDec = cbc::Decryptor<Aes256>;
 
-fn dec(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
+fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
     const CUSTOM_KEY: &str = "2025";
     let multiply_key = multiply(number, prsid);
 
@@ -97,7 +97,7 @@ mod tests {
         let number = 1;
         let prsid = 6;
 
-        let dec = dec(fio.to_string(), number, prsid).unwrap();
+        let dec = decrypt(fio.to_string(), number, prsid).unwrap();
         assert_eq!(dec, "Ковальов О. О.");
     }
 
@@ -107,7 +107,20 @@ mod tests {
         let number = 4;
         let prsid = 5;
 
-        let dec = dec(fio.to_string(), number, prsid).unwrap();
+        let dec = decrypt(fio.to_string(), number, prsid).unwrap();
         assert_eq!(dec, "Карбан К. А.");
+    }
+
+    #[test]
+    fn test3() {
+        let fio = "TTdMQmt4ZkFlN2JqZnA1L1ZZMkhUSmsyL3FrSU53UHRJdGcvMnFnaUV6bz0=";
+        let p = "N1dtV2NNSmkrRjlSWnV5cmJkSWd3UT09";
+        let number = 7;
+        let prsid = 6;
+
+        let fio = decrypt(fio.to_string(), number, prsid).unwrap();
+        assert_eq!(fio, "Дем`янчук О. П.");
+        let p = decrypt(p.to_string(), number, prsid).unwrap();
+        assert_eq!(p, "4 (Б)");
     }
 }
