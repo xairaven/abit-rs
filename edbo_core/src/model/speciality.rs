@@ -60,6 +60,36 @@ impl TryFrom<&str> for KnowledgeField {
     }
 }
 
+impl std::fmt::Display for KnowledgeField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            Self::Education => "Освіта",
+            Self::CultureArtsHumanities => "Культура, мистецтво та гуманітарні науки",
+            Self::SocialSciences => {
+                "Соціальні науки, журналістика, інформація та міжнародні відносини"
+            },
+            Self::BusinessAdministrationLaw => "Бізнес, адміністрування та право",
+            Self::NaturalSciencesMathematics => {
+                "Природничі науки, математика та статистика"
+            },
+            Self::InformationTechnologies => "Інформаційні технології",
+            Self::EngineeringManufacturingConstruction => {
+                "Інженерія, виробництво та будівництво"
+            },
+            Self::AgricultureForestryFisheriesVeterinary => {
+                "Сільське, лісове, рибне господарство та ветеринарна медицина"
+            },
+            Self::HealthcareSocialSecurity => {
+                "Охорона здоров’я та соціальне забезпечення"
+            },
+            Self::TransportServices => "Транспорт та послуги",
+            Self::SecurityDefense => "Безпека та оборона",
+        };
+
+        write!(f, "{}", text)
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum SpecialityError {
     #[error("Unknown knowledge field: {0}")]

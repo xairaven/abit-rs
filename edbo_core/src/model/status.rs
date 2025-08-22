@@ -2,22 +2,22 @@ use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
 pub enum ApplicationStatus {
-    ApplicationReceived,
-    Pending,
-    CancelledByApplicant,
-    CancelledPriorityLost,
-    Registered,
-    Admitted,
-    Rejected,
-    CancelledByInstitution,
-    RecommendedBudget,
-    RejectedBudget,
-    AdmittedContractDecision,
-    RecommendedContract,
-    RejectedContract,
-    ToEnrollmentOrder,
-    Expelled,
-    DeactivatedEnrolled,
+    ApplicationReceived = 1,
+    Pending = 2,
+    CancelledByApplicant = 3,
+    CancelledPriorityLost = 4,
+    Registered = 5,
+    Admitted = 6,
+    Rejected = 7,
+    CancelledByInstitution = 8,
+    RecommendedBudget = 9,
+    RejectedBudget = 10,
+    AdmittedContractDecision = 11,
+    RecommendedContract = 12,
+    RejectedContract = 13,
+    ToEnrollmentOrder = 14,
+    Expelled = 15,
+    DeactivatedEnrolled = 16,
 }
 
 impl Display for ApplicationStatus {

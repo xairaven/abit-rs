@@ -4,34 +4,34 @@ use thiserror::Error;
 #[derive(Debug)]
 pub enum Degree {
     // UA: Базова середня освіта
-    LowerSecondary,
+    LowerSecondary = 1,
 
     // UA: Кваліфікований робітник
-    QualifiedWorker,
+    QualifiedWorker = 2,
 
     // UA: Повна загальна середня освіта
-    HighSchool,
+    HighSchool = 3,
 
     // UA: Бакалавр
-    Bachelor,
+    Bachelor = 4,
 
     // UA: Магістр
-    Master,
+    Master = 5,
 
     // UA: Фаховий молодший бакалавр
-    ProfessionalJuniorBachelor,
+    ProfessionalJuniorBachelor = 6,
 
     // UA: Молодший бакалавр
-    JuniorBachelor,
+    JuniorBachelor = 7,
 
     // UA: Молодший спеціаліст
-    JuniorSpecialist,
+    JuniorSpecialist = 8,
 
     // UA: Доктор філософії
-    DoctorOfPhilosophy,
+    DoctorOfPhilosophy = 9,
 
     // UA: Доктор мистецтв
-    DoctorOfArts,
+    DoctorOfArts = 10,
 }
 
 impl Degree {
