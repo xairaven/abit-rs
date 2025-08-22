@@ -22,5 +22,5 @@ edbo_core = { path = "../edbo_core" }
 
 dotenvy = "0.15.7"
 log = "0.4.27"
-thiserror = "2.0.15"
+thiserror = "2.0.16"
 tokio = { version = "1.47.1", features = ["full"] }

@@ -20,4 +20,4 @@ workspace = true
 chrono = "0.4.41"
 fern = "0.7.1"
 log = "0.4.27"
-thiserror = "2.0.14"
+thiserror = "2.0.16"
