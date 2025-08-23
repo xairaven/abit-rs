@@ -47,6 +47,7 @@ pub enum ModelError {
     StudyForm(#[from] StudyFormError),
 }
 
+pub mod applicant;
 pub mod application;
 pub mod course;
 pub mod degree;

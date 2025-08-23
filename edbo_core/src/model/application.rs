@@ -13,9 +13,11 @@ pub struct Application {
     pub grade: f32,
     pub priority: Priority,
     pub grade_components: Vec<GradeComponent>,
+
+    pub user_id: Option<i32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GradeComponent {
     pub grade: f32,
     pub id: i32,
@@ -45,6 +47,8 @@ impl TryFrom<ApplyRequestDto> for Application {
             grade,
             priority,
             grade_components,
+
+            user_id: None,
         })
     }
 }
