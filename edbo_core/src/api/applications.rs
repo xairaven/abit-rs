@@ -12,6 +12,14 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
     let base_url = format!("{}/offer-requests/", api::links::MAIN);
     let base_url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
+    let amount = offers.len();
+    let mut counter: usize = 0;
+
+    log::info!(
+        "Started parsing applications. Total amount of offers: {}",
+        amount
+    );
+
     let client = reqwest::Client::builder()
         .build()
         .map_err(ApiError::FailedBuildClient)?;
@@ -62,8 +70,11 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
             let dto_map = loop {
                 match serde_json::from_str::<ApplyRequestDtoMap>(&text) {
                     Ok(value) => {
+                        counter += 1;
                         log::info!(
-                            "Application requests response success for offer {}.",
+                            "({}/{}) Offer applications process succeed. Offer ID: {}.",
+                            counter,
+                            amount,
                             offer.id
                         );
                         break value;
