@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
+#[derive(Debug)]
 pub enum ApplicationStatus {
     ApplicationReceived = 1,
     Pending = 2,

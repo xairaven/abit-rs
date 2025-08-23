@@ -102,6 +102,7 @@ impl ErrorResponse {
     }
 }
 
+pub mod applications;
 pub mod institution;
 pub mod offers;
 pub mod offers_university;

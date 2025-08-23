@@ -16,7 +16,7 @@ impl TryFrom<OffersUniversityDto> for OffersUniversity {
         let offers_dto = dto.ids.split(',').collect::<Vec<&str>>();
 
         if dto.n as usize != offers_dto.len() {
-            return Err(Self::Error::OffersUniversityError(
+            return Err(Self::Error::OffersUniversity(
                 OffersUniversityError::WrongIdAmount,
             ));
         }
@@ -24,9 +24,7 @@ impl TryFrom<OffersUniversityDto> for OffersUniversity {
         let mut offers = vec![];
         for offer in offers_dto {
             let offer = offer.parse::<u32>().map_err(|err| {
-                Self::Error::OffersUniversityError(
-                    OffersUniversityError::FailedToParseId(err),
-                )
+                Self::Error::OffersUniversity(OffersUniversityError::FailedToParseId(err))
             })?;
             offers.push(offer);
         }

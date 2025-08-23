@@ -10,7 +10,7 @@ const CUSTOM_KEY: &str = "2025";
 
 type Aes256CbcDec = cbc::Decryptor<Aes256>;
 
-fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
+pub fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
     let multiply_key = multiply(number, prsid);
 
     let k = format!("{:x}", Sha256::digest(multiply_key));

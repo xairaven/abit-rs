@@ -6,6 +6,7 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
     let institutions = api::institution::list().await?;
     let mut offers_with_institutions = api::offers_university::list().await?;
     let offers = api::offers::list(&mut offers_with_institutions).await?;
+    let applications = api::applications::list(&offers).await?;
 
     database::init(&settings).await?;
 
