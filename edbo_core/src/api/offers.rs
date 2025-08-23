@@ -15,6 +15,8 @@ pub async fn list(
     offers_of_institutes: &mut [OffersUniversity],
 ) -> Result<Vec<Offer>, CoreError> {
     let base_url = format!("{}/offer/", api::links::MAIN);
+    let amount = amount(offers_of_institutes);
+    log::info!("Started parsing offers. Total amount: {}", amount);
 
     let client = reqwest::Client::builder()
         .build()
@@ -26,6 +28,9 @@ pub async fn list(
     headers.insert("User-Agent", HeaderValue::from_static(api::USER_AGENT));
 
     let mut offers: Vec<Offer> = vec![];
+
+    // Needed for logging purposes (Progress)
+    let mut counter: usize = 0;
 
     // Institute ID, Offer ID
     let mut not_budgetary_offers: Vec<u32> = vec![];
@@ -53,7 +58,13 @@ pub async fn list(
                 match serde_json::from_str::<ErrorResponse>(&text) {
                     Ok(error) => error.handle_request_limit().await,
                     Err(_) => {
-                        log::info!("Offer response success for {} offer ID.", offer_id);
+                        counter += 1;
+                        log::info!(
+                            "({}/{}) Offer response success. ID: {}.",
+                            counter,
+                            amount,
+                            offer_id
+                        );
                         break;
                     },
                 }
@@ -187,4 +198,13 @@ fn extract_info_by_tag<T: serde::de::DeserializeOwned>(
     }
     log::error!("Extract info by tag failed for tag: {}", tag);
     Err(ApiError::FailedParsing(text.to_string()))
+}
+
+fn amount(offers_of_institutes: &mut [OffersUniversity]) -> usize {
+    let mut amount: usize = 0;
+    for relation in offers_of_institutes.iter() {
+        amount += relation.offers.len();
+    }
+
+    amount
 }
