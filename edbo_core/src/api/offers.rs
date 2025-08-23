@@ -14,13 +14,11 @@ use url::Url;
 pub async fn list(
     offers_of_institutes: &mut [OffersUniversity],
 ) -> Result<Vec<Offer>, CoreError> {
-    type Error = ApiError;
-
     let base_url = format!("{}/offer/", api::links::MAIN);
 
     let client = reqwest::Client::builder()
         .build()
-        .map_err(Error::FailedBuildClient)?;
+        .map_err(ApiError::FailedBuildClient)?;
 
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
@@ -36,19 +34,19 @@ pub async fn list(
             ticker.tick().await;
 
             let url = Url::parse(&format!("{}{}", base_url, offer_id))
-                .map_err(Error::FailedToParseUrl)?;
+                .map_err(ApiError::FailedToParseUrl)?;
 
             let response = client
                 .get(url)
                 .headers(headers.clone())
                 .send()
                 .await
-                .map_err(Error::RequestFailed)?;
+                .map_err(ApiError::RequestFailed)?;
 
             let text = response
                 .text()
                 .await
-                .map_err(Error::FailedToGetResponseText)?;
+                .map_err(ApiError::FailedToGetResponseText)?;
             log::debug!("Text from offer response: {:?}", text);
 
             let offer_type = extract_info_by_tag::<String>("ustn", &text)?;

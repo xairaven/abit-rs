@@ -6,10 +6,8 @@ use crate::model::institution::Institution;
 use url::Url;
 
 pub async fn list() -> Result<Vec<Institution>, CoreError> {
-    type Error = ApiError;
-
     let base_url = format!("{}/universities/", api::links::REGISTRY);
-    let mut url = Url::parse(&base_url).map_err(Error::FailedToParseUrl)?;
+    let mut url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
     const PARAMETERS: InstitutionsApi = InstitutionsApi {
         category: None,
@@ -20,18 +18,22 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
 
     let client = reqwest::Client::builder()
         .build()
-        .map_err(Error::FailedBuildClient)?;
+        .map_err(ApiError::FailedBuildClient)?;
 
-    let response = client.get(url).send().await.map_err(Error::RequestFailed)?;
+    let response = client
+        .get(url)
+        .send()
+        .await
+        .map_err(ApiError::RequestFailed)?;
     log::info!("Institution list response success.");
 
     let text = response
         .text()
         .await
-        .map_err(Error::FailedToGetResponseText)?;
+        .map_err(ApiError::FailedToGetResponseText)?;
     log::debug!("Text from response: {:?}", text);
     let dto_list: Vec<InstitutionDto> =
-        serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
+        serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
 
     let mut list: Vec<Institution> = Vec::with_capacity(dto_list.len());
     for dto in dto_list {

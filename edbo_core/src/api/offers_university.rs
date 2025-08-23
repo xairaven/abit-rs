@@ -12,14 +12,12 @@ use std::collections::HashMap;
 use url::Url;
 
 pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
-    type Error = ApiError;
-
     let base_url = format!("{}/offers-universities/", api::links::MAIN);
-    let base_url = Url::parse(&base_url).map_err(Error::FailedToParseUrl)?;
+    let base_url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
     let client = reqwest::Client::builder()
         .build()
-        .map_err(Error::FailedBuildClient)?;
+        .map_err(ApiError::FailedBuildClient)?;
 
     let mut parameters = OffersUniversitiesApi {
         qualification: Some(Degree::Master.qualification().map_err(ModelError::Degree)?),
@@ -42,7 +40,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     headers.insert("User-Agent", HeaderValue::from_static(api::USER_AGENT));
     headers.insert(
         "Referer",
-        HeaderValue::from_str(base_url.as_str()).map_err(Error::InvalidHeaderValue)?,
+        HeaderValue::from_str(base_url.as_str()).map_err(ApiError::InvalidHeaderValue)?,
     );
 
     let mut offers: Vec<OffersUniversity> = vec![];
@@ -59,12 +57,12 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
             .form(&form)
             .send()
             .await
-            .map_err(Error::RequestFailed)?;
+            .map_err(ApiError::RequestFailed)?;
 
         let text = response
             .text()
             .await
-            .map_err(Error::FailedToGetResponseText)?;
+            .map_err(ApiError::FailedToGetResponseText)?;
         log::debug!("Text from response: {:?}", text);
 
         let dto_map = loop {
@@ -78,7 +76,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
                 },
                 Err(_) => {
                     let error: ErrorResponse =
-                        serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;
+                        serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
                     error.handle_request_limit().await;
                 },
             };
