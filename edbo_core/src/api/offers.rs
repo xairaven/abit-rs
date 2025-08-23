@@ -67,6 +67,7 @@ pub async fn list(
                 continue;
             }
 
+            // Unwrap because of ISSUE: https://vstup.edbo.gov.ua/offer/1454003
             let faculty = extract_info_by_tag::<String>("ufn", &text).unwrap_or_default();
             let education_program =
                 extract_info_by_tag::<String>("usn", &text).unwrap_or_default();
