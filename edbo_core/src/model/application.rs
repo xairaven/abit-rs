@@ -18,10 +18,7 @@ pub struct Application {
 }
 
 #[derive(Debug, Clone)]
-pub struct GradeComponent {
-    pub grade: f32,
-    pub id: i32,
-}
+pub struct GradeComponent(pub f32);
 
 impl TryFrom<ApplyRequestDto> for Application {
     type Error = ModelError;
@@ -66,7 +63,7 @@ impl TryFrom<GradeComponentDto> for GradeComponent {
             .parse::<f32>()
             .map_err(GradeComponentError::FailedToParse)?;
 
-        Ok(Self { grade, id: dto.id })
+        Ok(Self(grade))
     }
 }
 

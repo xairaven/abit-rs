@@ -53,7 +53,7 @@ fn is_same_person_by_grades(application: &Application, applicant: &Applicant) ->
             if exclude_indexes.contains(&i) {
                 continue;
             }
-            if grade_person.grade == grade_application.grade {
+            if grade_person.0 == grade_application.0 {
                 equal_count += 1;
                 exclude_indexes.push(i);
                 break;
