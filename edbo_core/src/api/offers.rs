@@ -67,9 +67,11 @@ pub async fn list(
                 continue;
             }
 
-            let faculty = extract_info_by_tag::<String>("ufn", &text)?;
-            let education_program = extract_info_by_tag::<String>("usn", &text)?;
-            let master_type = extract_info_by_tag::<String>("mptn", &text)?;
+            let faculty = extract_info_by_tag::<String>("ufn", &text).unwrap_or_default();
+            let education_program =
+                extract_info_by_tag::<String>("usn", &text).unwrap_or_default();
+            let master_type =
+                extract_info_by_tag::<String>("mptn", &text).unwrap_or_default();
             let speciality = Speciality::try_from(
                 extract_info_by_tag::<String>("ssc", &text)?.as_str(),
             )
@@ -142,24 +144,35 @@ fn extract_info_by_tag<T: serde::de::DeserializeOwned>(
     tag: &str, text: &str,
 ) -> Result<T, ApiError> {
     if let Some(script_start) = text.find("let offer") {
-        let snippet = text
-            .get(script_start..)
-            .ok_or(ApiError::FailedParsing(text.to_string()))?;
+        let snippet = match text.get(script_start..) {
+            Some(value) => value,
+            None => {
+                log::error!("Extract info by tag failed for tag: {}", tag);
+                return Err(ApiError::FailedParsing(text.to_string()));
+            },
+        };
         let pattern = format!(
             r#""{}"\s*:\s*(?P<val>"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null)"#,
             regex::escape(tag)
         );
         let re = Regex::new(&pattern)?;
         if let Some(captures) = re.captures(snippet) {
-            let value = captures
-                .name("val")
-                .ok_or(ApiError::FailedParsing(text.to_string()))?
-                .as_str();
+            let value = match captures.name("val") {
+                Some(v) => v.as_str(),
+                None => {
+                    log::error!("Extract info by tag failed for tag: {}", tag);
+                    return Err(ApiError::FailedParsing(text.to_string()));
+                },
+            };
             return match serde_json::from_str::<T>(value) {
                 Ok(value) => Ok(value),
-                Err(_) => Err(ApiError::FailedParsing(text.to_string())),
+                Err(_) => {
+                    log::error!("Extract info by tag failed for tag: {}", tag);
+                    Err(ApiError::FailedParsing(text.to_string()))
+                },
             };
         }
     }
+    log::error!("Extract info by tag failed for tag: {}", tag);
     Err(ApiError::FailedParsing(text.to_string()))
 }
