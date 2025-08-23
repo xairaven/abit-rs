@@ -1,5 +1,5 @@
 use crate::api;
-use crate::api::{ApiError, INTERVAL_FOR_REQUESTS};
+use crate::api::{ApiError, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::error::CoreError;
 use crate::model::ModelError;
 use crate::model::offer::Offer;
@@ -48,6 +48,16 @@ pub async fn list(
                 .await
                 .map_err(ApiError::FailedToGetResponseText)?;
             log::debug!("Text from offer response: {:?}", text);
+
+            loop {
+                match serde_json::from_str::<ErrorResponse>(&text) {
+                    Ok(error) => error.handle_request_limit().await,
+                    Err(_) => {
+                        log::info!("Offer response success for {} offer ID.", offer_id);
+                        break;
+                    },
+                }
+            }
 
             let offer_type = extract_info_by_tag::<String>("ustn", &text)?;
             let offer_type =
