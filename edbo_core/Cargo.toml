@@ -22,6 +22,7 @@ base64 = "0.22.1"
 block-padding = "0.3"
 cbc = "0.1.2"
 log = "0.4.27"
+regex = "1.11.1"
 reqwest = { version = "0.12.23", features = ["json"] }
 serde = "1.0.219"
 serde_json = "1.0.143"
