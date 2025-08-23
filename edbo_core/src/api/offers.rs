@@ -81,9 +81,30 @@ pub async fn list(
             )
             .map_err(ModelError::from)?;
             let budgetary_places = if let OfferType::Open = offer_type {
-                extract_info_by_tag::<i32>("ox", &text)?
+                match extract_info_by_tag::<i32>("ox", &text) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        // ISSUE: https://vstup.edbo.gov.ua/offer/1513669
+                        log::error!(
+                            "Failed to get budgetary places for OPEN offer ID: {}",
+                            offer_id
+                        );
+                        not_budgetary_offers.push(*offer_id);
+                        continue;
+                    },
+                }
             } else if let OfferType::Fixed = offer_type {
-                extract_info_by_tag::<i32>("ob", &text)?
+                match extract_info_by_tag::<i32>("ob", &text) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        log::error!(
+                            "Failed to get budgetary places for FIXED offer ID: {}",
+                            offer_id
+                        );
+                        not_budgetary_offers.push(*offer_id);
+                        continue;
+                    },
+                }
             } else {
                 return Err(ApiError::FailedParsing(text.to_string()).into());
             };
