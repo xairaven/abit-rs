@@ -78,7 +78,18 @@ pub async fn list(
             )
             .map_err(ModelError::from)?;
             let title = extract_info_by_tag::<String>("spn", &text)?;
-            let license_volume = extract_info_by_tag::<i32>("ol", &text)?;
+            let license_volume = match extract_info_by_tag::<i32>("ol", &text) {
+                Ok(value) => value,
+                Err(_) => {
+                    // ISSUE: https://vstup.edbo.gov.ua/offer/1513669
+                    log::error!(
+                        "Failed to get license volume for offer ID: {}",
+                        offer_id
+                    );
+                    not_budgetary_offers.push(*offer_id);
+                    continue;
+                },
+            };
             let study_form = StudyForm::try_from(
                 extract_info_by_tag::<String>("efn", &text)?.as_str(),
             )
