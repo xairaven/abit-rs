@@ -4,8 +4,8 @@ use crate::error::CoreError;
 
 pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
     let institutions = api::institution::list().await?;
-    let offers_with_institutions = api::offers_university::list().await?;
-    let offers = api::offers::list(&offers_with_institutions).await?;
+    let mut offers_with_institutions = api::offers_university::list().await?;
+    let offers = api::offers::list(&mut offers_with_institutions).await?;
 
     database::init(&settings).await?;
 

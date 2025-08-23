@@ -11,6 +11,7 @@ pub mod links {
 
 pub const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
     tokio::time::Duration::from_secs(2);
+pub const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0";
 
 #[derive(Debug, Error)]
 pub enum ApiError {
@@ -31,6 +32,12 @@ pub enum ApiError {
 
     #[error("Invalid header value. {0}")]
     InvalidHeaderValue(reqwest::header::InvalidHeaderValue),
+
+    #[error("Failed to parse data: {0}")]
+    FailedParsing(String),
+
+    #[error("Regex error: {0}")]
+    Regex(#[from] regex::Error),
 }
 
 #[derive(Debug)]
@@ -96,4 +103,5 @@ impl ErrorResponse {
 }
 
 pub mod institution;
+pub mod offers;
 pub mod offers_university;

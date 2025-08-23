@@ -39,7 +39,11 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 
     let mut headers = HeaderMap::new();
-    headers.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0"));
+    headers.insert("User-Agent", HeaderValue::from_static(api::USER_AGENT));
+    headers.insert(
+        "Referer",
+        HeaderValue::from_str(base_url.as_str()).map_err(Error::InvalidHeaderValue)?,
+    );
 
     let mut offers: Vec<OffersUniversity> = vec![];
     for (_, speciality) in speciality::ALL_SPECIALITIES.iter() {
@@ -49,26 +53,13 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
 
         let form = parameters.create_form();
 
-        let mut headers = headers.clone();
-        let mut referer_url = base_url.clone();
-        parameters.append_parameters_to_url(&mut referer_url);
-        headers.insert(
-            "Referer",
-            HeaderValue::from_str(referer_url.as_str())
-                .map_err(Error::InvalidHeaderValue)?,
-        );
-
         let response = client
             .post(base_url.clone())
-            .headers(headers)
+            .headers(headers.clone())
             .form(&form)
             .send()
             .await
             .map_err(Error::RequestFailed)?;
-        log::info!(
-            "Offers <-> Institution list response success for {} speciality.",
-            speciality.code()
-        );
 
         let text = response
             .text()
@@ -78,7 +69,13 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
 
         let dto_map = loop {
             match serde_json::from_str::<OffersUniversityMapDto>(&text) {
-                Ok(value) => break value,
+                Ok(value) => {
+                    log::info!(
+                        "Offers <-> Institution list response success for {} speciality.",
+                        speciality.code()
+                    );
+                    break value;
+                },
                 Err(_) => {
                     let error: ErrorResponse =
                         serde_json::from_str(&text).map_err(Error::JsonParseFailed)?;

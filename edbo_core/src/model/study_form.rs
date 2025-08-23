@@ -1,9 +1,25 @@
+use thiserror::Error;
+
 #[derive(Debug)]
 pub enum StudyForm {
     FullTime = 1,
     External = 2,
     Evening = 4,
     Online = 5,
+}
+
+impl TryFrom<&str> for StudyForm {
+    type Error = StudyFormError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "Денна" => Ok(Self::FullTime),
+            "Заочна" => Ok(Self::External),
+            "Вечірня" => Ok(Self::Evening),
+            "Дистанційна" => Ok(Self::Online),
+            _ => Err(Self::Error::UnknownForm(value.to_string())),
+        }
+    }
 }
 
 impl std::fmt::Display for StudyForm {
@@ -17,4 +33,10 @@ impl std::fmt::Display for StudyForm {
 
         write!(f, "{}", text)
     }
+}
+
+#[derive(Debug, Error)]
+pub enum StudyFormError {
+    #[error("Unknown form: {0}")]
+    UnknownForm(String),
 }
