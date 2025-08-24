@@ -155,6 +155,10 @@ macro_rules! define_specialities {
                     )*
                 }
             }
+
+            pub fn knowledge_field(&self) -> KnowledgeField {
+                KnowledgeField::from(self)
+            }
         }
 
         impl From<&Speciality> for KnowledgeField {
