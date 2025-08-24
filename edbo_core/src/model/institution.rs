@@ -3,18 +3,19 @@ use crate::model::ModelError;
 use crate::model::institution_category::InstitutionCategory;
 use crate::model::ownership_form::OwnershipForm;
 use crate::model::region::Region;
+use num_enum::TryFromPrimitiveError;
 use std::num::ParseIntError;
 use thiserror::Error;
 
 #[derive(Debug)]
 pub struct Institution {
     pub name: String,
-    pub id: u16,
-    pub parent_id: Option<u16>,
+    pub id: i16,
+    pub parent_id: Option<i16>,
     pub short_name: Option<String>,
     pub english_name: Option<String>,
     pub is_from_crimea: bool,
-    pub registration_year: Option<u16>,
+    pub registration_year: Option<i16>,
     pub category: InstitutionCategory,
     pub ownership_form: OwnershipForm,
     pub region: Region,
@@ -25,7 +26,7 @@ impl TryFrom<InstitutionDto> for Institution {
 
     fn try_from(dto: InstitutionDto) -> Result<Self, Self::Error> {
         let parent_id = if let Some(parent_id) = dto.university_parent_id {
-            Some(parent_id.parse::<u16>().map_err(|err| {
+            Some(parent_id.parse::<i16>().map_err(|err| {
                 ModelError::Institution(InstitutionError::FailedParseParentId(err))
             })?)
         } else {
@@ -43,7 +44,7 @@ impl TryFrom<InstitutionDto> for Institution {
         let is_from_crimea = matches!(dto.is_from_crimea.as_str(), "так");
 
         let registration_year = if let Some(year) = dto.registration_year {
-            Some(year.parse::<u16>().map_err(|err| {
+            Some(year.parse::<i16>().map_err(|err| {
                 ModelError::Institution(InstitutionError::FailedParseRegistrationYear(
                     err,
                 ))
@@ -86,4 +87,13 @@ pub enum InstitutionError {
 
     #[error("Failed to parse registration year. {0}")]
     FailedParseRegistrationYear(ParseIntError),
+
+    #[error("Failed to parse institution category id. {0}")]
+    FailedParseCategoryId(TryFromPrimitiveError<InstitutionCategory>),
+
+    #[error("Failed to parse institution ownership form id. {0}")]
+    FailedParseOwnershipFormId(TryFromPrimitiveError<OwnershipForm>),
+
+    #[error("Failed to parse institution region id. {0}")]
+    FailedParseRegionId(TryFromPrimitiveError<Region>),
 }
