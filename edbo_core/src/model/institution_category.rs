@@ -1,7 +1,8 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::{Display, Formatter};
+use strum_macros::EnumIter;
 
-#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive, EnumIter)]
 #[repr(i8)]
 pub enum InstitutionCategory {
     // UA: Заклади вищої освіти
@@ -75,7 +76,7 @@ impl Display for InstitutionCategory {
 }
 
 impl InstitutionCategory {
-    pub const fn code(&self) -> Option<u16> {
+    pub const fn code(&self) -> Option<i16> {
         match self {
             Self::HigherEducation => Some(1),
             Self::VocationalTechnical => Some(2),
