@@ -1,4 +1,5 @@
-use crate::model::application::GradeComponent;
+use crate::dto::application::GradeComponentDto;
+use crate::model::ModelError;
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -85,6 +86,41 @@ impl Applicants {
 
         MUST_EQUAL >= equal_count
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct GradeComponent(pub f32);
+
+impl TryFrom<GradeComponentDto> for GradeComponent {
+    type Error = ModelError;
+
+    fn try_from(dto: GradeComponentDto) -> Result<Self, Self::Error> {
+        let grade = dto
+            .kv
+            .split(' ')
+            .collect::<Vec<&str>>()
+            .first()
+            .ok_or(GradeComponentError::FailedToSplit(dto.kv.to_string()))?
+            .parse::<f32>()
+            .map_err(GradeComponentError::FailedToParse)?;
+
+        Ok(Self(grade))
+    }
+}
+
+impl PartialEq for GradeComponent {
+    fn eq(&self, other: &Self) -> bool {
+        (self.0 - other.0).abs() < 0.0001
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum GradeComponentError {
+    #[error("Failed to split grade: {0}")]
+    FailedToSplit(String),
+
+    #[error("Failed to parse grade: {0}")]
+    FailedToParse(#[from] std::num::ParseFloatError),
 }
 
 #[derive(Debug, Error)]

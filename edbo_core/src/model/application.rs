@@ -1,10 +1,9 @@
 use crate::crypto;
-use crate::dto::application::{ApplyRequestDto, GradeComponentDto};
+use crate::dto::application::ApplyRequestDto;
 use crate::model::ModelError;
-use crate::model::applicant::Applicants;
+use crate::model::applicant::{Applicants, GradeComponent};
 use crate::model::priority::Priority;
 use crate::model::status::ApplicationStatus;
-use thiserror::Error;
 
 #[derive(Debug)]
 pub struct Application {
@@ -46,39 +45,4 @@ impl Application {
             user_id,
         })
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct GradeComponent(pub f32);
-
-impl TryFrom<GradeComponentDto> for GradeComponent {
-    type Error = ModelError;
-
-    fn try_from(dto: GradeComponentDto) -> Result<Self, Self::Error> {
-        let grade = dto
-            .kv
-            .split(' ')
-            .collect::<Vec<&str>>()
-            .first()
-            .ok_or(GradeComponentError::FailedToSplit(dto.kv.to_string()))?
-            .parse::<f32>()
-            .map_err(GradeComponentError::FailedToParse)?;
-
-        Ok(Self(grade))
-    }
-}
-
-impl PartialEq for GradeComponent {
-    fn eq(&self, other: &Self) -> bool {
-        (self.0 - other.0).abs() < 0.0001
-    }
-}
-
-#[derive(Debug, Error)]
-pub enum GradeComponentError {
-    #[error("Failed to split grade: {0}")]
-    FailedToSplit(String),
-
-    #[error("Failed to parse grade: {0}")]
-    FailedToParse(#[from] std::num::ParseFloatError),
 }

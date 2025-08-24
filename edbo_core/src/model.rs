@@ -1,6 +1,5 @@
 use crate::crypto::CryptoError;
-use crate::model::applicant::ApplicantError;
-use crate::model::application::GradeComponentError;
+use crate::model::applicant::{ApplicantError, GradeComponentError};
 use crate::model::degree::DegreeError;
 use crate::model::institution::InstitutionError;
 use crate::model::offer_type::OfferTypeError;
