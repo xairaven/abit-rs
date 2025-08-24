@@ -1,9 +1,9 @@
-use crate::api;
 use crate::api::{ApiError, ApiFetcherForm, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::dto::application::ApplyRequestDtoMap;
 use crate::error::CoreError;
 use crate::model::application::Application;
 use crate::model::offer::Offer;
+use crate::{api, request};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::collections::HashMap;
 use url::Url;
@@ -20,9 +20,7 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
         amount
     );
 
-    let client = reqwest::Client::builder()
-        .build()
-        .map_err(ApiError::FailedBuildClient)?;
+    let client = request::Client::build()?;
 
     let mut form: HashMap<String, i32> = HashMap::new();
     form.insert(String::from("last"), 1);

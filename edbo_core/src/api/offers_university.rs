@@ -1,4 +1,3 @@
-use crate::api;
 use crate::api::{
     ApiError, ApiFetcherForm, ApiFetcherUrl, ErrorResponse, INTERVAL_FOR_REQUESTS,
 };
@@ -7,6 +6,7 @@ use crate::error::CoreError;
 use crate::model::degree::Degree;
 use crate::model::offers_university::OffersUniversity;
 use crate::model::{ModelError, speciality};
+use crate::{api, request};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::collections::HashMap;
 use url::Url;
@@ -15,9 +15,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     let base_url = format!("{}/offers-universities/", api::links::MAIN);
     let base_url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
-    let client = reqwest::Client::builder()
-        .build()
-        .map_err(ApiError::FailedBuildClient)?;
+    let client = request::Client::build()?;
 
     let mut parameters = OffersUniversitiesApi {
         qualification: Some(Degree::Master.qualification().map_err(ModelError::Degree)?),

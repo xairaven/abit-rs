@@ -1,4 +1,3 @@
-use crate::api;
 use crate::api::{ApiError, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::error::CoreError;
 use crate::model::ModelError;
@@ -7,6 +6,7 @@ use crate::model::offer_type::OfferType;
 use crate::model::offers_university::OffersUniversity;
 use crate::model::speciality::Speciality;
 use crate::model::study_form::StudyForm;
+use crate::{api, request};
 use regex::Regex;
 use reqwest::header::{HeaderMap, HeaderValue};
 use url::Url;
@@ -18,9 +18,7 @@ pub async fn list(
     let amount = amount(offers_of_institutes);
     log::info!("Started parsing offers. Total amount: {}", amount);
 
-    let client = reqwest::Client::builder()
-        .build()
-        .map_err(ApiError::FailedBuildClient)?;
+    let client = request::Client::build()?;
 
     let mut ticker = tokio::time::interval(INTERVAL_FOR_REQUESTS);
 

@@ -1,8 +1,8 @@
-use crate::api;
 use crate::api::{ApiError, ApiFetcherUrl, ExportFormat};
 use crate::dto::institution::InstitutionDto;
 use crate::error::CoreError;
 use crate::model::institution::Institution;
+use crate::{api, request};
 use url::Url;
 
 pub async fn list() -> Result<Vec<Institution>, CoreError> {
@@ -16,9 +16,7 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
     };
     PARAMETERS.append_parameters_to_url(&mut url);
 
-    let client = reqwest::Client::builder()
-        .build()
-        .map_err(ApiError::FailedBuildClient)?;
+    let client = request::Client::build()?;
 
     let response = client
         .get(url)

@@ -24,6 +24,7 @@ pub mod crypto;
 pub mod database;
 pub mod error;
 pub mod model;
+pub mod request;
 
 pub mod dto {
     pub mod application;
