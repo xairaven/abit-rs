@@ -1,7 +1,8 @@
 use crate::database::Database;
+use crate::error::CoreError;
 use thiserror::Error;
 
-pub type RepositoryResult<T> = Result<T, RepositoryError>;
+pub type RepositoryResult<T> = Result<T, CoreError>;
 
 pub trait Repository<'a>: Send + Sync {
     fn new(database: &'a Database) -> Self
@@ -19,3 +20,4 @@ pub enum RepositoryError {
 }
 
 pub mod applicant;
+pub mod application;
