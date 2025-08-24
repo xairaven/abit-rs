@@ -55,14 +55,14 @@ CREATE TABLE IF NOT EXISTS speciality (
 );
 
 CREATE TABLE IF NOT EXISTS degree (
-    id INTEGER PRIMARY KEY,
+    id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS offer (
     id INTEGER PRIMARY KEY,
     title VARCHAR NOT NULL,
-    degree_id INTEGER NOT NULL,
+    degree_id INT2 NOT NULL,
     education_program VARCHAR NOT NULL,
     study_form_id INT2 NOT NULL,
     faculty VARCHAR,
