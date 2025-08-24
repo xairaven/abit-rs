@@ -127,7 +127,7 @@ macro_rules! define_specialities {
             } $(,)?
         )*
     ) => {
-      #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+      #[derive(Copy, Clone, Debug, PartialEq, Eq, EnumIter)]
         pub enum Speciality {
             $(
                 $(
