@@ -11,7 +11,7 @@ pub struct Offer {
     pub faculty: Option<String>,
     pub speciality: Speciality,
     pub master_type: Option<String>,
-    pub license_volume: i32,
     pub study_form: StudyForm,
+    pub license_volume: i32,
     pub budgetary_places: i32,
 }

@@ -1,4 +1,4 @@
-use num_enum::{IntoPrimitive, TryFromPrimitive};
+use num_enum::{IntoPrimitive, TryFromPrimitive, TryFromPrimitiveError};
 use std::fmt::Display;
 use thiserror::Error;
 
@@ -111,4 +111,7 @@ pub enum DegreeError {
 
     #[error("Degree \"{0}\"does not have education base code")]
     EducationBaseCodeAbsent(String),
+
+    #[error("Unknown degree with id {0}")]
+    UnknownDegree(TryFromPrimitiveError<Degree>),
 }

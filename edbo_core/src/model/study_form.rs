@@ -41,4 +41,7 @@ impl std::fmt::Display for StudyForm {
 pub enum StudyFormError {
     #[error("Unknown form: {0}")]
     UnknownForm(String),
+
+    #[error("Unknown ID: {0}")]
+    UnknownId(i8),
 }
