@@ -1,4 +1,5 @@
 use crate::crypto::CryptoError;
+use crate::model::applicant::ApplicantError;
 use crate::model::application::GradeComponentError;
 use crate::model::degree::DegreeError;
 use crate::model::institution::InstitutionError;
@@ -13,6 +14,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ModelError {
+    #[error("Applicant Error. {0}")]
+    Applicant(#[from] ApplicantError),
+
     #[error("Application Status Error. {0}")]
     ApplicationStatus(#[from] ApplicationStatusError),
 
@@ -49,7 +53,6 @@ pub enum ModelError {
 
 pub mod applicant;
 pub mod application;
-pub mod course;
 pub mod degree;
 pub mod institution;
 pub mod institution_category;

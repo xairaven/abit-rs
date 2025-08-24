@@ -5,8 +5,8 @@ use thiserror::Error;
 
 #[derive(Debug)]
 pub struct OffersUniversity {
-    pub university_id: u32,
-    pub offers: Vec<u32>,
+    pub university_id: i32,
+    pub offers: Vec<i32>,
 }
 
 impl TryFrom<OffersUniversityDto> for OffersUniversity {
@@ -23,7 +23,7 @@ impl TryFrom<OffersUniversityDto> for OffersUniversity {
 
         let mut offers = vec![];
         for offer in offers_dto {
-            let offer = offer.parse::<u32>().map_err(|err| {
+            let offer = offer.parse::<i32>().map_err(|err| {
                 Self::Error::OffersUniversity(OffersUniversityError::FailedToParseId(err))
             })?;
             offers.push(offer);

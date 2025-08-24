@@ -1,6 +1,7 @@
 use crate::api::{ApiError, ApiFetcherForm, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::dto::application::ApplyRequestDtoMap;
 use crate::error::CoreError;
+use crate::model::applicant::Applicants;
 use crate::model::application::Application;
 use crate::model::offer::Offer;
 use crate::{api, request};
@@ -8,7 +9,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use std::collections::HashMap;
 use url::Url;
 
-pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
+pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), CoreError> {
     let base_url = format!("{}/offer-requests/", api::links::MAIN);
     let base_url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
@@ -35,6 +36,7 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
     );
 
     let mut applications: Vec<Application> = vec![];
+    let mut applicants = Applicants::default();
     for offer in offers {
         let mut parameters = ApplicantsApi {
             id: offer.id,
@@ -88,7 +90,7 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
             let length = dto_map.requests.len() as i32;
 
             for dto in dto_map.requests {
-                let value = Application::try_from(dto)?;
+                let value = Application::try_from_dto(dto, offer.id, &mut applicants)?;
                 applications.push(value);
             }
 
@@ -100,11 +102,11 @@ pub async fn list(offers: &[Offer]) -> Result<Vec<Application>, CoreError> {
         }
     }
 
-    Ok(applications)
+    Ok((applications, applicants))
 }
 
 pub struct ApplicantsApi {
-    pub id: u32,
+    pub id: i32,
     pub last: i32,
 }
 

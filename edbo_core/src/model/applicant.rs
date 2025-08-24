@@ -1,5 +1,6 @@
-use crate::model::application::{Application, GradeComponent};
+use crate::model::application::GradeComponent;
 use std::collections::HashMap;
+use thiserror::Error;
 
 #[derive(Debug)]
 pub struct Applicant {
@@ -8,58 +9,86 @@ pub struct Applicant {
     pub grade_components: Vec<GradeComponent>,
 }
 
-pub fn list(applications: &mut [Application]) -> Vec<Applicant> {
-    let mut map: HashMap<String, Vec<Applicant>> = HashMap::new();
-    let mut id_counter = 1;
-
-    for application in applications.iter_mut() {
-        let applicants = map.entry(application.full_name.clone()).or_default();
-
-        let mut found = false;
-        for applicant in applicants.iter() {
-            if is_same_person_by_grades(application, applicant) {
-                application.user_id = Some(applicant.id);
-                found = true;
-                break;
-            }
-        }
-
-        if !found {
-            let new_applicant = Applicant {
-                id: id_counter,
-                name: application.full_name.clone(),
-                grade_components: application.grade_components.clone(),
-            };
-            application.user_id = Some(id_counter);
-            applicants.push(new_applicant);
-            id_counter += 1;
-        }
-    }
-
-    let mut applicants: Vec<Applicant> = Vec::new();
-    for values in map.values_mut() {
-        applicants.append(values);
-    }
-
-    applicants
+#[derive(Debug, Default)]
+pub struct Applicants {
+    pub applicants: HashMap<String, Vec<Applicant>>,
+    pub id_counter: i32,
 }
 
-fn is_same_person_by_grades(application: &Application, applicant: &Applicant) -> bool {
-    const MUST_EQUAL: usize = 2;
-    let mut equal_count = 0;
-    let mut exclude_indexes: Vec<usize> = Vec::new();
-    for grade_person in &applicant.grade_components {
-        for (i, grade_application) in application.grade_components.iter().enumerate() {
-            if exclude_indexes.contains(&i) {
-                continue;
-            }
-            if grade_person.0 == grade_application.0 {
-                equal_count += 1;
-                exclude_indexes.push(i);
+impl Applicants {
+    pub fn add_application(
+        &mut self, full_name: String, grade_components: Vec<GradeComponent>,
+    ) -> Result<i32, ApplicantError> {
+        let applicants = self.applicants.entry(full_name.clone()).or_default();
+
+        let mut user_index: Option<usize> = None;
+        for (index, applicant) in applicants.iter().enumerate() {
+            if Self::is_same_person_by_grades(&grade_components, applicant) {
+                user_index = Some(index);
                 break;
             }
         }
+
+        match user_index {
+            Some(index) => {
+                let applicant = applicants
+                    .get_mut(index)
+                    .ok_or(ApplicantError::FailedToIndexApplicant(full_name, index))?;
+                for grade in grade_components {
+                    if !applicant.grade_components.contains(&grade) {
+                        applicant.grade_components.push(grade);
+                    }
+                }
+                Ok(applicant.id)
+            },
+            None => {
+                let id = self.id_counter;
+                self.id_counter += 1;
+
+                let new_applicant = Applicant {
+                    id,
+                    name: full_name,
+                    grade_components,
+                };
+                applicants.push(new_applicant);
+                Ok(id)
+            },
+        }
     }
 
-    MUST_EQUAL >= equal_count
+    pub fn to_vec(self) -> Vec<Applicant> {
+        let mut applicants: Vec<Applicant> = Vec::new();
+        for mut values in self.applicants.into_values() {
+            applicants.append(&mut values);
+        }
+        applicants
+    }
+
+    fn is_same_person_by_grades(
+        grades: &[GradeComponent], applicant: &Applicant,
+    ) -> bool {
+        const MUST_EQUAL: usize = 2;
+        let mut equal_count = 0;
+        let mut exclude_indexes: Vec<usize> = Vec::new();
+        for grade_person in &applicant.grade_components {
+            for (i, grade_application) in grades.iter().enumerate() {
+                if exclude_indexes.contains(&i) {
+                    continue;
+                }
+                if grade_person.0 == grade_application.0 {
+                    equal_count += 1;
+                    exclude_indexes.push(i);
+                    break;
+                }
+            }
+        }
+
+        MUST_EQUAL >= equal_count
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum ApplicantError {
+    #[error("Failed to index applicant \"{0}\" at index {1}")]
+    FailedToIndexApplicant(String, usize),
 }

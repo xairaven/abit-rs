@@ -1,6 +1,7 @@
 use crate::api::{ApiError, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::error::CoreError;
 use crate::model::ModelError;
+use crate::model::degree::Degree;
 use crate::model::offer::Offer;
 use crate::model::offer_type::OfferType;
 use crate::model::offers_university::OffersUniversity;
@@ -31,7 +32,7 @@ pub async fn list(
     let mut counter: usize = 0;
 
     // Institute ID, Offer ID
-    let mut not_budgetary_offers: Vec<u32> = vec![];
+    let mut not_budgetary_offers: Vec<i32> = vec![];
     for university_offers_relation in offers_of_institutes.iter() {
         for offer_id in &university_offers_relation.offers {
             ticker.tick().await;
@@ -76,12 +77,11 @@ pub async fn list(
                 continue;
             }
 
-            // Unwrap because of ISSUE: https://vstup.edbo.gov.ua/offer/1454003
-            let faculty = extract_info_by_tag::<String>("ufn", &text).unwrap_or_default();
+            // ISSUE: https://vstup.edbo.gov.ua/offer/1454003
+            let faculty = extract_info_by_tag::<String>("ufn", &text).ok();
             let education_program =
                 extract_info_by_tag::<String>("usn", &text).unwrap_or_default();
-            let master_type =
-                extract_info_by_tag::<String>("mptn", &text).unwrap_or_default();
+            let master_type = extract_info_by_tag::<String>("mptn", &text).ok();
             let speciality = Speciality::try_from(
                 extract_info_by_tag::<String>("ssc", &text)?.as_str(),
             )
@@ -135,6 +135,7 @@ pub async fn list(
             let offer = Offer {
                 id: *offer_id,
                 title,
+                degree: Degree::Master,
                 education_program,
                 faculty,
                 speciality,

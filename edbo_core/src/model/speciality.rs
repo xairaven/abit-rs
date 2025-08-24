@@ -1,4 +1,3 @@
-use num_enum::{IntoPrimitive, TryFromPrimitive};
 use thiserror::Error;
 
 // Source: https://zakon.rada.gov.ua/laws/show/266-2015-п#n11
