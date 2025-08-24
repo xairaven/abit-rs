@@ -96,7 +96,7 @@ impl<'a> InstitutionRepository<'a> {
     pub async fn find_all(
         &self, limit: Option<i32>, offset: Option<i32>,
     ) -> RepositoryResult<Vec<Institution>> {
-        let select = "SELECT id, name, parent_id, short_name, english_name, is_from_crimea, registration_year, category_id, ownership_form_id, region_id FROM application";
+        let select = "SELECT id, name, parent_id, short_name, english_name, is_from_crimea, registration_year, category_id, ownership_form_id, region_id FROM institution";
 
         let query = match (limit, offset) {
             (Some(l), Some(o)) => format!("{} LIMIT {} OFFSET {}", select, l, o),

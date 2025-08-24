@@ -22,3 +22,4 @@ pub enum RepositoryError {
 pub mod applicant;
 pub mod application;
 pub mod institution;
+pub mod offer;
