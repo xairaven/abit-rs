@@ -1,8 +1,9 @@
+use strum_macros::EnumIter;
 use thiserror::Error;
 
 // Source: https://zakon.rada.gov.ua/laws/show/266-2015-п#n11
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, EnumIter)]
 pub enum KnowledgeField {
     // UA: (A) Освіта
     Education,

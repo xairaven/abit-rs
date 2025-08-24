@@ -24,6 +24,7 @@ pub mod application;
 pub mod degree;
 pub mod institution;
 pub mod institution_category;
+pub mod knowledge_field;
 pub mod offer;
 pub mod offers_university;
 pub mod ownership_form;
