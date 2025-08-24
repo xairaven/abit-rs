@@ -1,4 +1,5 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::fmt::Display;
 use thiserror::Error;
 
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
@@ -27,6 +28,20 @@ impl TryFrom<&str> for Priority {
             "(К)" => Ok(Priority::Contract),
             _ => Err(Self::Error::UnknownValue(String::from(value))),
         }
+    }
+}
+
+impl Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Priority::First => "1 (Б)",
+            Priority::Second => "2 (Б)",
+            Priority::Third => "3 (Б)",
+            Priority::Fourth => "4 (Б)",
+            Priority::Fifth => "5 (Б)",
+            Priority::Contract => "(К)",
+        };
+        write!(f, "{s}")
     }
 }
 
