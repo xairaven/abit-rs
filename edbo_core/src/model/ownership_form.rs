@@ -1,4 +1,5 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
@@ -19,5 +20,18 @@ impl From<&str> for OwnershipForm {
             "Приватна" => Self::Private,
             _ => Self::Unknown,
         }
+    }
+}
+
+impl Display for OwnershipForm {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            OwnershipForm::State => "Державна",
+            OwnershipForm::Municipal => "Комунальна",
+            OwnershipForm::Corporate => "Корпоративна",
+            OwnershipForm::Private => "Приватна",
+            OwnershipForm::Unknown => "Не визначено",
+        };
+        write!(f, "{s}")
     }
 }

@@ -60,6 +60,24 @@ impl TryFrom<&str> for KnowledgeField {
     }
 }
 
+impl KnowledgeField {
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::Education => "A",
+            Self::CultureArtsHumanities => "B",
+            Self::SocialSciences => "C",
+            Self::BusinessAdministrationLaw => "D",
+            Self::NaturalSciencesMathematics => "E",
+            Self::InformationTechnologies => "F",
+            Self::EngineeringManufacturingConstruction => "G",
+            Self::AgricultureForestryFisheriesVeterinary => "H",
+            Self::HealthcareSocialSecurity => "I",
+            Self::TransportServices => "J",
+            Self::SecurityDefense => "K",
+        }
+    }
+}
+
 impl std::fmt::Display for KnowledgeField {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {

@@ -1,4 +1,5 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
@@ -50,6 +51,26 @@ impl From<&str> for InstitutionCategory {
             "Наукові інститути (установи)" => Self::Scientific,
             _ => Self::Unknown,
         }
+    }
+}
+
+impl Display for InstitutionCategory {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            Self::HigherEducation => "Заклади вищої освіти",
+            Self::VocationalTechnical => {
+                "Заклади професійної (професійно-технічної) освіти"
+            },
+            Self::PreUniversityProfessional => "Заклади фахової передвищої освіти",
+            Self::Scientific => "Наукові інститути (установи)",
+            Self::Postgraduate => "Заклади післядипломної освіти",
+            Self::GeneralSecondaryEducation => "Заклад загальної середньої освіти",
+            Self::OtherVocationalTechnical => {
+                "Інший заклад освіти, що надає професійну (професійно-технічну освіту)"
+            },
+            Self::Unknown => "Невідомо",
+        };
+        write!(f, "{}", text)
     }
 }
 
