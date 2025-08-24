@@ -3,41 +3,40 @@ use thiserror::Error;
 
 // Source: https://zakon.rada.gov.ua/laws/show/266-2015-п#n11
 
-#[derive(Debug, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, PartialEq)]
 pub enum KnowledgeField {
     // UA: (A) Освіта
-    Education = 1,
+    Education,
 
     // UA: (B) Культура, мистецтво та гуманітарні науки
-    CultureArtsHumanities = 2,
+    CultureArtsHumanities,
 
     // UA: (C) Соціальні науки, журналістика, інформація та міжнародні відносини
-    SocialSciences = 3,
+    SocialSciences,
 
     // UA: (D) Бізнес, адміністрування та право
-    BusinessAdministrationLaw = 4,
+    BusinessAdministrationLaw,
 
     // UA: (E) Природничі науки, математика та статистика
-    NaturalSciencesMathematics = 5,
+    NaturalSciencesMathematics,
 
     // UA: (F) Інформаційні технології
-    InformationTechnologies = 6,
+    InformationTechnologies,
 
     // UA: (G) Інженерія, виробництво та будівництво
-    EngineeringManufacturingConstruction = 7,
+    EngineeringManufacturingConstruction,
 
     // UA: (H) Сільське, лісове, рибне господарство та ветеринарна медицина
-    AgricultureForestryFisheriesVeterinary = 8,
+    AgricultureForestryFisheriesVeterinary,
 
     // UA: (I) Охорона здоров’я та соціальне забезпечення
-    HealthcareSocialSecurity = 9,
+    HealthcareSocialSecurity,
 
     // UA: (J) Транспорт та послуги
-    TransportServices = 10,
+    TransportServices,
 
     // UA: (K) Безпека та оборона
-    SecurityDefense = 11,
+    SecurityDefense,
 }
 
 impl TryFrom<&str> for KnowledgeField {
