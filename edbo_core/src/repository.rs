@@ -30,3 +30,4 @@ pub mod priority;
 pub mod region;
 pub mod speciality;
 pub mod status;
+pub mod study_form;

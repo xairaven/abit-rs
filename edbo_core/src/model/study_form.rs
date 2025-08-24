@@ -1,7 +1,8 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use strum_macros::EnumIter;
 use thiserror::Error;
 
-#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive, EnumIter)]
 #[repr(i8)]
 pub enum StudyForm {
     FullTime = 1,
