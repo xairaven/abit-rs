@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS priority (
 
 CREATE TABLE IF NOT EXISTS application (
     number_in_list INTEGER NOT NULL,
-    status_id INTEGER NOT NULL,
+    status_id INT2 NOT NULL,
     grade DECIMAL (10, 3) NOT NULL,
     priority_id INT2 NOT NULL,
 
