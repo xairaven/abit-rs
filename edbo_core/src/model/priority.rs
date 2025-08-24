@@ -1,13 +1,17 @@
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
 pub enum Priority {
     First = 1,
     Second = 2,
     Third = 3,
     Fourth = 4,
     Fifth = 5,
-    Contract,
+
+    // Unknown code
+    Contract = 6,
 }
 
 impl TryFrom<&str> for Priority {

@@ -1,4 +1,7 @@
-#[derive(Debug)]
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+
+#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
 pub enum InstitutionCategory {
     // UA: Заклади вищої освіти
     HigherEducation = 1,
@@ -15,13 +18,14 @@ pub enum InstitutionCategory {
     // UA: Заклади післядипломної освіти
     Postgraduate = 10,
 
-    // UA: Заклад загальної середньої освіти
-    GeneralSecondaryEducation,
+    // UA: Заклад загальної середньої освіти (Unknown Code)
+    GeneralSecondaryEducation = 3,
 
-    // UA: Інший заклад освіти, що надає професійну (професійно-технічну освіту)
-    OtherVocationalTechnical,
+    // UA: Інший заклад освіти, що надає професійну (професійно-технічну освіту) (Unknown Code)
+    OtherVocationalTechnical = 4,
 
-    Unknown,
+    // (Unknown Code)
+    Unknown = 5,
 }
 
 impl From<&str> for InstitutionCategory {

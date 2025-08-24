@@ -1,7 +1,9 @@
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
 pub enum ApplicationStatus {
     ApplicationReceived = 1,
     Pending = 2,

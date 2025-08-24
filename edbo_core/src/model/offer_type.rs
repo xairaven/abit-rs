@@ -1,6 +1,8 @@
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u8)]
 pub enum OfferType {
     Open = 1,
     Fixed = 2,
