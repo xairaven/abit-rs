@@ -13,12 +13,22 @@ pub struct ApplicationRepository<'a> {
     db: &'a Database,
 }
 
+#[async_trait::async_trait]
 impl<'a> Repository<'a> for ApplicationRepository<'a> {
     fn new(database: &'a Database) -> Self
     where
         Self: Sized,
     {
         Self { db: database }
+    }
+
+    async fn is_empty(&self) -> RepositoryResult<bool> {
+        let result = sqlx::query!("SELECT EXISTS (SELECT 1 FROM application);")
+            .fetch_one(&self.db.pool)
+            .await
+            .map_err(RepositoryError::Sql)?;
+
+        Ok(!result.exists.unwrap_or(false))
     }
 }
 

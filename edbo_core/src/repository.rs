@@ -4,10 +4,13 @@ use thiserror::Error;
 
 pub type RepositoryResult<T> = Result<T, CoreError>;
 
+#[async_trait::async_trait]
 pub trait Repository<'a>: Send + Sync {
     fn new(database: &'a Database) -> Self
     where
         Self: Sized;
+
+    async fn is_empty(&self) -> RepositoryResult<bool>;
 }
 
 #[derive(Debug, Error)]
