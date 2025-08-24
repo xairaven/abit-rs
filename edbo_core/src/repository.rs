@@ -23,3 +23,4 @@ pub mod applicant;
 pub mod application;
 pub mod institution;
 pub mod offer;
+pub mod offers_university;
