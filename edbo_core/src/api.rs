@@ -10,7 +10,7 @@ pub mod links {
 }
 
 pub const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
-    tokio::time::Duration::from_millis(1300);
+    tokio::time::Duration::from_millis(1115);
 pub const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0";
 
 #[derive(Debug, Error)]
