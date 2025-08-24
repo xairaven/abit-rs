@@ -112,6 +112,6 @@ CREATE TABLE IF NOT EXISTS application (
     PRIMARY KEY (offer_id, number_in_list),
     CONSTRAINT fk_application_status FOREIGN KEY (status_id) REFERENCES application_status(id),
     CONSTRAINT fk_application_priority FOREIGN KEY (priority_id) REFERENCES priority(id),
-    CONSTRAINT fk_application_offer FOREIGN KEY (priority_id) REFERENCES offer(id),
-    CONSTRAINT fk_application_user FOREIGN KEY (priority_id) REFERENCES applicant(id)
+    CONSTRAINT fk_application_offer FOREIGN KEY (offer_id) REFERENCES offer(id),
+    CONSTRAINT fk_application_user FOREIGN KEY (user_id) REFERENCES applicant(id)
 );
