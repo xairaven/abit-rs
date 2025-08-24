@@ -27,4 +27,5 @@ pub mod offer;
 pub mod offers_university;
 pub mod ownership_form;
 pub mod priority;
+pub mod region;
 pub mod speciality;
