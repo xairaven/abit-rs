@@ -2,8 +2,8 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::Display;
 use thiserror::Error;
 
-#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[repr(i8)]
 pub enum Degree {
     // UA: Базова середня освіта
     LowerSecondary = 1,

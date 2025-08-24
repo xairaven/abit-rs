@@ -122,6 +122,12 @@ pub enum GradeComponentError {
 
     #[error("Failed to parse grade: {0}")]
     FailedToParse(#[from] std::num::ParseFloatError),
+
+    #[error("Failed to convert big int to float")]
+    FailedFromBigInt,
+
+    #[error("Failed to convert float to big decimal")]
+    FailedToBigDecimal(#[from] bigdecimal::ParseBigDecimalError),
 }
 
 #[derive(Debug, Error)]

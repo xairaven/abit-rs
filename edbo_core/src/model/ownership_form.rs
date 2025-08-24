@@ -1,8 +1,8 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[repr(i8)]
 pub enum OwnershipForm {
     State = 1,
     Municipal = 2,

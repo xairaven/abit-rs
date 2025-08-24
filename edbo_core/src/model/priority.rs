@@ -2,8 +2,8 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::Display;
 use thiserror::Error;
 
-#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[repr(i8)]
 pub enum Priority {
     First = 1,
     Second = 2,
@@ -49,4 +49,7 @@ impl Display for Priority {
 pub enum PriorityError {
     #[error("Failed to convert priority value. {0}")]
     UnknownValue(String),
+
+    #[error("Unknown priority code: {0}")]
+    UnknownCode(i32),
 }

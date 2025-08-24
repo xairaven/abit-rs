@@ -1,8 +1,8 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use thiserror::Error;
 
-#[derive(Debug, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive)]
+#[repr(i8)]
 pub enum StudyForm {
     FullTime = 1,
     External = 2,
