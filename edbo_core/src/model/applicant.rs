@@ -1,5 +1,6 @@
 use crate::dto::application::GradeComponentDto;
 use crate::model::ModelError;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -88,7 +89,7 @@ impl Applicants {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GradeComponent(pub f32);
 
 impl TryFrom<GradeComponentDto> for GradeComponent {

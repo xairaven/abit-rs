@@ -1,6 +1,7 @@
 use crate::api;
 use crate::database::DbError;
 use crate::model::ModelError;
+use crate::repository::RepositoryError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -13,4 +14,7 @@ pub enum CoreError {
 
     #[error("Model Error. {0}")]
     ModelError(#[from] ModelError),
+
+    #[error("Repository Error. {0}")]
+    Repository(#[from] RepositoryError),
 }

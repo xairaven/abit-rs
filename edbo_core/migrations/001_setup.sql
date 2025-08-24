@@ -1,6 +1,3 @@
-SELECT 'CREATE DATABASE edbo_db'
-    WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'edbo_db');
-
 CREATE TABLE IF NOT EXISTS institution_category (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL,
