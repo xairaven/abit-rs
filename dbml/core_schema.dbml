@@ -34,11 +34,6 @@ Ref institution_category: institution.category_id > institution_category.id
 Ref institution_ownership: institution.ownership_form_id > ownership_form.id
 Ref institution_region: institution.region_id > region.id
 
-Table start_course {
-  id integer [primary key]
-  name varchar [not null]
-}
-
 Table application_status {
   id integer [primary key]
   description varchar [not null]
@@ -75,3 +70,52 @@ Table offers_university {
 
 Ref institution_offer: offers_university.university_id > institution.id
 
+Table applicant {
+  id integer [primary key]
+  name varchar [not null]
+  grade_components json [not null]
+}
+
+Table priority {
+  id integer [primary key]
+  key varchar [not null]
+}
+
+Table application {
+  offer_id integer [not null]
+  number_in_list integer [not null]
+  status_id integer [not null]
+  grade float [not null]
+  priority_id integer [not null]
+  user_id integer
+}
+
+Ref application_user: application.user_id > applicant.id
+Ref application_offer: application.offer_id > offer.id
+Ref application_status: application.status_id > application_status.id
+Ref application_priority: application.priority_id > priority.id
+
+Table offer {
+  id integer [primary key]
+  title varchar [not null]
+  degree_id integer [not null]
+  education_program varchar [not null]
+  faculty varchar
+  speciality_code varchar [not null]
+  master_type varchar
+  license_volume integer [not null]
+  budgetary_places integer [not null]
+  study_form_id integer [not null]
+}
+
+Ref offer_study_form: offer.study_form_id > study_form.id
+Ref offer_degree: offer.degree_id > degree.id
+Ref offer_speciality: offer.speciality_code > speciality.code
+
+Table offers_institutions {
+  offer_id integer [not null]
+  institution_id integer [not null]
+}
+
+Ref offers_many: offer.id < offers_institutions.offer_id
+Ref institutions_many: institution.id < offers_institutions.institution_id
