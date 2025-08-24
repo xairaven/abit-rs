@@ -1,15 +1,16 @@
+use crate::database::Database;
 use crate::error::CoreError;
 
 // Main Source: https://zakon.rada.gov.ua/laws/show/z0312-25#Text
 
 pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
+    let db = Database::init(&settings).await?;
+
     let institutions = api::institution::list().await?;
     let mut offers_with_institutions = api::offers_university::list().await?;
     let offers = api::offers::list(&mut offers_with_institutions).await?;
     let (applications, applicants) = api::applications::list(&offers).await?;
     let applicants = applicants.to_vec();
-
-    database::init(&settings).await?;
 
     Ok(())
 }
