@@ -59,16 +59,8 @@ Ref knowledge_field_speciality: speciality.knowledge_field > knowledge_field.cod
 
 Table degree {
   id integer [primary key]
-  qualification integer
-  education_base integer
+  description varchar [not null]
 }
-
-Table offers_university {
-  university_id integer [not null]
-  offer_id integer [not null]
-}
-
-Ref institution_offer: offers_university.university_id > institution.id
 
 Table applicant {
   id integer [primary key]
