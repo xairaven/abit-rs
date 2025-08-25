@@ -38,16 +38,16 @@ impl<'a> InstitutionRepository<'a> {
                                          is_from_crimea, registration_year, category_id, ownership_form_id, region_id)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             "#,
-            institution.id as i32,
+            (institution.id as i32),
             institution.name,
             institution.parent_id.map(|id| id as i32),
             institution.short_name,
             institution.english_name,
             institution.is_from_crimea,
             institution.registration_year,
-            institution.category as i8,
-            institution.ownership_form as i8,
-            institution.region as i8
+            (institution.category as i16),
+            (institution.ownership_form as i16),
+            (institution.region as i16)
         )
         .execute(&self.db.pool)
         .await

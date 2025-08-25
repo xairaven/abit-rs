@@ -34,7 +34,7 @@ impl<'a> ApplicationStatusRepository<'a> {
                 INSERT INTO application_status (id, description)
                 VALUES ($1, $2)
             "#,
-                status as i8,
+                (status as i16),
                 status.to_string()
             )
             .execute(&self.db.pool)

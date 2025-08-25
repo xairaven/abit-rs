@@ -34,7 +34,7 @@ impl<'a> PriorityRepository<'a> {
                 INSERT INTO priority (id, key)
                 VALUES ($1, $2)
             "#,
-                priority as i8,
+                (priority as i16),
                 priority.to_string()
             )
             .execute(&self.db.pool)

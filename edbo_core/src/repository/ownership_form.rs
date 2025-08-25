@@ -34,7 +34,7 @@ impl<'a> OwnershipFormRepository<'a> {
                 INSERT INTO ownership_form (id, description)
                 VALUES ($1, $2)
             "#,
-                form as i8,
+                (form as i16),
                 form.to_string()
             )
             .execute(&self.db.pool)

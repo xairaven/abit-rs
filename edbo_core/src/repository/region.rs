@@ -34,7 +34,7 @@ impl<'a> RegionRepository<'a> {
                 INSERT INTO region (id, name)
                 VALUES ($1, $2)
             "#,
-                region as i8,
+                (region as i16),
                 region.to_string()
             )
             .execute(&self.db.pool)

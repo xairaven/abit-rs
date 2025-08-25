@@ -34,7 +34,7 @@ impl<'a> DegreeRepository<'a> {
                 INSERT INTO degree (id, description)
                 VALUES ($1, $2)
             "#,
-                degree as i8,
+                (degree as i16),
                 degree.to_string()
             )
             .execute(&self.db.pool)

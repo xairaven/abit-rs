@@ -34,7 +34,7 @@ impl<'a> InstitutionCategoryRepository<'a> {
                 INSERT INTO institution_category (id, description, code)
                 VALUES ($1, $2, $3)
             "#,
-                category as i8,
+                (category as i16),
                 category.to_string(),
                 category.code()
             )
