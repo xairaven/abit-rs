@@ -33,8 +33,8 @@ impl<'a> ApplicationService<'a> {
         if self.application_repo.is_empty().await?
             || self.applicant_repo.is_empty().await?
         {
-            self.applicant_repo.truncate().await?;
             self.application_repo.truncate().await?;
+            self.applicant_repo.truncate().await?;
             log::info!(
                 "Both applicant and application tables are clear. Requesting data from API..."
             );
