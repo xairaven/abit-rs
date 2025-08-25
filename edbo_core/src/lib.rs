@@ -1,3 +1,4 @@
+use crate::context::Context;
 use crate::database::Database;
 use crate::error::CoreError;
 use crate::services::Service;
@@ -25,6 +26,14 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
         .get(&offers)
         .await?;
 
+    let context = Context {
+        applicants,
+        applications,
+        institutions,
+        offers,
+        offers_with_institutions,
+    };
+
     Ok(())
 }
 
@@ -34,6 +43,7 @@ pub struct InitSettings {
 }
 
 pub mod api;
+pub mod context;
 pub mod crypto;
 pub mod database;
 pub mod error;
