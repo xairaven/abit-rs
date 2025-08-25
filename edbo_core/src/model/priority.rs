@@ -1,33 +1,55 @@
-use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::fmt::Display;
-use strum_macros::EnumIter;
 use thiserror::Error;
 
-#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive, EnumIter)]
-#[repr(i8)]
+#[derive(Debug, Copy, Clone)]
 pub enum Priority {
-    First = 1,
-    Second = 2,
-    Third = 3,
-    Fourth = 4,
-    Fifth = 5,
-
-    // Unknown code
-    Contract = 6,
+    Budgetary(i8),
+    Contract,
 }
 
 impl TryFrom<&str> for Priority {
     type Error = PriorityError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        match value.trim() {
-            "1 (Б)" => Ok(Priority::First),
-            "2 (Б)" => Ok(Priority::Second),
-            "3 (Б)" => Ok(Priority::Third),
-            "4 (Б)" => Ok(Priority::Fourth),
-            "5 (Б)" => Ok(Priority::Fifth),
-            "(К)" => Ok(Priority::Contract),
-            _ => Err(Self::Error::UnknownValue(String::from(value))),
+        if value.trim() == "(К)" {
+            return Ok(Priority::Contract);
+        }
+
+        let parts = value.split_whitespace().collect::<Vec<&str>>();
+        if parts.len() != 2 {
+            return Err(Self::Error::UnknownValue(String::from(value)));
+        }
+        let number = parts
+            .first()
+            .ok_or(Self::Error::UnknownValue(String::from(value)))?
+            .parse::<i8>()
+            .map_err(|_| Self::Error::UnknownValue(String::from(value)))?;
+        if !parts
+            .get(1)
+            .ok_or(Self::Error::UnknownValue(String::from(value)))?
+            .eq(&"(Б)")
+        {
+            return Err(Self::Error::UnknownValue(String::from(value)));
+        }
+
+        Ok(Priority::Budgetary(number))
+    }
+}
+
+impl From<i8> for Priority {
+    fn from(value: i8) -> Self {
+        match value {
+            0 => Priority::Contract,
+            _ => Priority::Budgetary(value),
+        }
+    }
+}
+
+impl From<Priority> for i8 {
+    fn from(value: Priority) -> Self {
+        match value {
+            Priority::Budgetary(number) => number,
+            Priority::Contract => 0,
         }
     }
 }
@@ -35,12 +57,8 @@ impl TryFrom<&str> for Priority {
 impl Display for Priority {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Priority::First => "1 (Б)",
-            Priority::Second => "2 (Б)",
-            Priority::Third => "3 (Б)",
-            Priority::Fourth => "4 (Б)",
-            Priority::Fifth => "5 (Б)",
-            Priority::Contract => "(К)",
+            Self::Budgetary(number) => format!("{} (Б)", number),
+            Self::Contract => "(К)".to_string(),
         };
         write!(f, "{s}")
     }

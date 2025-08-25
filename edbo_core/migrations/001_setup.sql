@@ -97,23 +97,17 @@ CREATE TABLE IF NOT EXISTS applicant (
     grade_components JSONB NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS priority (
-    id INT2 PRIMARY KEY,
-    key VARCHAR NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS application (
     number_in_list INTEGER NOT NULL,
     status_id INT2 NOT NULL,
     grade DECIMAL (10, 3) NOT NULL,
-    priority_id INT2 NOT NULL,
+    priority_code INT2 NOT NULL,
 
     offer_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
 
     PRIMARY KEY (offer_id, number_in_list),
     CONSTRAINT fk_application_status FOREIGN KEY (status_id) REFERENCES application_status(id),
-    CONSTRAINT fk_application_priority FOREIGN KEY (priority_id) REFERENCES priority(id),
     CONSTRAINT fk_application_offer FOREIGN KEY (offer_id) REFERENCES offer(id),
     CONSTRAINT fk_application_user FOREIGN KEY (user_id) REFERENCES applicant(id)
 );

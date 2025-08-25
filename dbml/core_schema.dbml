@@ -73,11 +73,6 @@ Table applicant {
   grade_components json [not null]
 }
 
-Table priority {
-  id integer [primary key]
-  key varchar [not null]
-}
-
 Table application {
   offer_id integer [not null]
   number_in_list integer [not null]
@@ -90,7 +85,6 @@ Table application {
 Ref application_user: application.user_id > applicant.id
 Ref application_offer: application.offer_id > offer.id
 Ref application_status: application.status_id > application_status.id
-Ref application_priority: application.priority_id > priority.id
 
 Table offer {
   id integer [primary key]

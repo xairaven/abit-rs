@@ -2,7 +2,7 @@ use crate::database::Database;
 use crate::model::ModelError;
 use crate::model::applicant::GradeComponentError;
 use crate::model::application::Application;
-use crate::model::priority::{Priority, PriorityError};
+use crate::model::priority::Priority;
 use crate::model::status::{ApplicationStatus, ApplicationStatusError};
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
 use bigdecimal::BigDecimal;
@@ -35,7 +35,7 @@ impl<'a> ApplicationRepository<'a> {
     pub async fn create(&self, application: &Application) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
-                INSERT INTO application (number_in_list, status_id, grade, priority_id, offer_id, user_id)
+                INSERT INTO application (number_in_list, status_id, grade, priority_code, offer_id, user_id)
                 VALUES ($1, $2, $3, $4, $5, $6)
             "#,
             application.number_in_list,
@@ -56,7 +56,7 @@ impl<'a> ApplicationRepository<'a> {
     pub async fn find_by_offer_id(&self, id: i32) -> RepositoryResult<Vec<Application>> {
         let rows = sqlx::query!(
             r#"
-            SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id
+            SELECT number_in_list, status_id, grade, priority_code, offer_id, user_id
             FROM application
             WHERE offer_id = $1
         "#,
@@ -80,11 +80,7 @@ impl<'a> ApplicationRepository<'a> {
                 grade: row.grade.to_f32().ok_or(ModelError::GradeComponent(
                     GradeComponentError::FailedFromBigInt,
                 ))?,
-                priority: Priority::try_from(row.priority_id as i8).map_err(|_| {
-                    ModelError::Priority(PriorityError::UnknownCode(
-                        row.priority_id as i32,
-                    ))
-                })?,
+                priority: Priority::from(row.priority_code as i8),
                 offer_id: row.offer_id,
                 user_id: row.user_id,
             };
@@ -97,7 +93,7 @@ impl<'a> ApplicationRepository<'a> {
     pub async fn find_by_user_id(&self, id: i32) -> RepositoryResult<Vec<Application>> {
         let rows = sqlx::query!(
             r#"
-            SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id
+            SELECT number_in_list, status_id, grade, priority_code, offer_id, user_id
             FROM application
             WHERE user_id = $1
         "#,
@@ -121,11 +117,7 @@ impl<'a> ApplicationRepository<'a> {
                 grade: row.grade.to_f32().ok_or(ModelError::GradeComponent(
                     GradeComponentError::FailedFromBigInt,
                 ))?,
-                priority: Priority::try_from(row.priority_id as i8).map_err(|_| {
-                    ModelError::Priority(PriorityError::UnknownCode(
-                        row.priority_id as i32,
-                    ))
-                })?,
+                priority: Priority::from(row.priority_code as i8),
                 offer_id: row.offer_id,
                 user_id: row.user_id,
             };
@@ -139,7 +131,7 @@ impl<'a> ApplicationRepository<'a> {
         let rows = sqlx::query!(
             r#"
             SELECT number_in_list, status_id, grade,
-                   priority_id, offer_id, user_id FROM application
+                   priority_code, offer_id, user_id FROM application
                    "#
         )
         .fetch_all(&self.db.pool)
@@ -160,11 +152,7 @@ impl<'a> ApplicationRepository<'a> {
                 grade: row.grade.to_f32().ok_or(ModelError::GradeComponent(
                     GradeComponentError::FailedFromBigInt,
                 ))?,
-                priority: Priority::try_from(row.priority_id as i8).map_err(|_| {
-                    ModelError::Priority(PriorityError::UnknownCode(
-                        row.priority_id as i32,
-                    ))
-                })?,
+                priority: Priority::from(row.priority_code as i8),
                 offer_id: row.offer_id,
                 user_id: row.user_id,
             };
