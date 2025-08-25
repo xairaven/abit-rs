@@ -82,8 +82,7 @@ CREATE TABLE IF NOT EXISTS offers_institutions (
     offer_id INTEGER NOT NULL,
 
     PRIMARY KEY (university_id, offer_id),
-    CONSTRAINT fk_institution_many FOREIGN KEY (university_id) REFERENCES institution(id),
-    CONSTRAINT fk_offers_many FOREIGN KEY (offer_id) REFERENCES offer(id)
+    CONSTRAINT fk_institution_many FOREIGN KEY (university_id) REFERENCES institution(id)
 );
 
 CREATE TABLE IF NOT EXISTS applicant (

@@ -1,6 +1,7 @@
 use crate::database::Database;
 use crate::error::CoreError;
 use crate::services::Service;
+
 // Main Source: https://zakon.rada.gov.ua/laws/show/z0312-25#Text
 
 pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
@@ -13,7 +14,10 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
     let institutions = services::institutions::InstitutionService::new(&db)
         .get()
         .await?;
-    let mut offers_with_institutions = api::offers_university::list().await?;
+    let mut offers_with_institutions =
+        services::offer_university::OfferUniversityService::new(&db)
+            .get()
+            .await?;
     let offers = api::offers::list(&mut offers_with_institutions).await?;
     let (applications, applicants) = api::applications::list(&offers).await?;
     let applicants = applicants.to_vec();
