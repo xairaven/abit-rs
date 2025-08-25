@@ -5,7 +5,6 @@ use crate::model::institution_category::InstitutionCategory;
 use crate::model::ownership_form::OwnershipForm;
 use crate::model::region::Region;
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
-use sqlx::Row;
 
 pub struct InstitutionRepository<'a> {
     db: &'a Database,
@@ -80,22 +79,15 @@ impl<'a> InstitutionRepository<'a> {
                 english_name: row.english_name,
                 is_from_crimea: row.is_from_crimea,
                 registration_year: row.registration_year,
-                category: InstitutionCategory::try_from(row.category_id as i8).map_err(
-                    |err| {
-                        ModelError::Institution(InstitutionError::FailedParseCategoryId(
-                            err,
-                        ))
-                    },
-                )?,
+                category: InstitutionCategory::try_from(row.category_id as i8)
+                    .map_err(InstitutionError::FailedParseCategoryId)
+                    .map_err(ModelError::Institution)?,
                 ownership_form: OwnershipForm::try_from(row.ownership_form_id as i8)
-                    .map_err(|err| {
-                        ModelError::Institution(
-                            InstitutionError::FailedParseOwnershipFormId(err),
-                        )
-                    })?,
-                region: Region::try_from(row.region_id as i8).map_err(|err| {
-                    ModelError::Institution(InstitutionError::FailedParseRegionId(err))
-                })?,
+                    .map_err(InstitutionError::FailedParseOwnershipFormId)
+                    .map_err(ModelError::Institution)?,
+                region: Region::try_from(row.region_id as i8)
+                    .map_err(InstitutionError::FailedParseRegionId)
+                    .map_err(ModelError::Institution)?,
             };
             institutions.push(institution);
         }
@@ -103,19 +95,13 @@ impl<'a> InstitutionRepository<'a> {
         Ok(institutions)
     }
 
-    pub async fn find_all(
-        &self, limit: Option<i32>, offset: Option<i32>,
-    ) -> RepositoryResult<Vec<Institution>> {
-        let select = "SELECT id, name, parent_id, short_name, english_name, is_from_crimea, registration_year, category_id, ownership_form_id, region_id FROM institution";
-
-        let query = match (limit, offset) {
-            (Some(l), Some(o)) => format!("{} LIMIT {} OFFSET {}", select, l, o),
-            (Some(l), None) => format!("{} LIMIT {}", select, l),
-            (None, Some(o)) => format!("{} OFFSET {}", select, o),
-            (None, None) => select.to_string(),
-        };
-
-        let rows = sqlx::query(&query)
+    pub async fn find_all(&self) -> RepositoryResult<Vec<Institution>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT id, name, parent_id, short_name, english_name, is_from_crimea,
+                   registration_year, category_id, ownership_form_id, region_id FROM institution
+            "#
+        )
             .fetch_all(&self.db.pool)
             .await
             .map_err(RepositoryError::Sql)?;
@@ -123,28 +109,22 @@ impl<'a> InstitutionRepository<'a> {
         let mut institutions = Vec::new();
         for row in rows {
             let institution = Institution {
-                name: row.get(0),
-                id: row.get::<i32, _>(1) as i16,
-                parent_id: row.get::<Option<i32>, _>(2).map(|value| value as i16),
-                short_name: row.get(3),
-                english_name: row.get(4),
-                is_from_crimea: row.get(5),
-                registration_year: row.get::<Option<i32>, _>(6).map(|value| value as i16),
-                category: InstitutionCategory::try_from(row.get::<i16, _>(7) as i8)
-                    .map_err(|err| {
-                        ModelError::Institution(InstitutionError::FailedParseCategoryId(
-                            err,
-                        ))
-                    })?,
-                ownership_form: OwnershipForm::try_from(row.get::<i16, _>(8) as i8)
-                    .map_err(|err| {
-                        ModelError::Institution(
-                            InstitutionError::FailedParseOwnershipFormId(err),
-                        )
-                    })?,
-                region: Region::try_from(row.get::<i16, _>(9) as i8).map_err(|err| {
-                    ModelError::Institution(InstitutionError::FailedParseRegionId(err))
-                })?,
+                name: row.name,
+                id: row.id as i16,
+                parent_id: row.parent_id.map(|id| id as i16),
+                short_name: row.short_name,
+                english_name: row.english_name,
+                is_from_crimea: row.is_from_crimea,
+                registration_year: row.registration_year,
+                category: InstitutionCategory::try_from(row.category_id as i8)
+                    .map_err(InstitutionError::FailedParseCategoryId)
+                    .map_err(ModelError::Institution)?,
+                ownership_form: OwnershipForm::try_from(row.ownership_form_id as i8)
+                    .map_err(InstitutionError::FailedParseOwnershipFormId)
+                    .map_err(ModelError::Institution)?,
+                region: Region::try_from(row.region_id as i8)
+                    .map_err(InstitutionError::FailedParseRegionId)
+                    .map_err(ModelError::Institution)?,
             };
             institutions.push(institution);
         }
