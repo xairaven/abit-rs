@@ -59,19 +59,25 @@ CREATE TABLE IF NOT EXISTS degree (
     description VARCHAR NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS offer_type (
+    id INT2 PRIMARY KEY,
+    description VARCHAR NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS offer (
     id INTEGER PRIMARY KEY,
     title VARCHAR NOT NULL,
     degree_id INT2 NOT NULL,
     education_program VARCHAR NOT NULL,
-    study_form_id INT2 NOT NULL,
     faculty VARCHAR,
     speciality_code VARCHAR NOT NULL,
+    type_id INT2 NOT NULL,
     master_type VARCHAR,
-
+    study_form_id INT2 NOT NULL,
     license_volume INTEGER NOT NULL,
     budgetary_places INTEGER NOT NULL,
 
+    CONSTRAINT fk_offer_type FOREIGN KEY (type_id) REFERENCES offer_type(id),
     CONSTRAINT fk_offer_degree FOREIGN KEY (degree_id) REFERENCES degree(id),
     CONSTRAINT fk_offer_speciality FOREIGN KEY (speciality_code) REFERENCES speciality(code),
     CONSTRAINT fk_offer_study_form FOREIGN KEY (study_form_id) REFERENCES study_form(id)

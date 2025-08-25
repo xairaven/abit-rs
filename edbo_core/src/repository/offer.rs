@@ -2,6 +2,7 @@ use crate::database::Database;
 use crate::model::ModelError;
 use crate::model::degree::{Degree, DegreeError};
 use crate::model::offer::Offer;
+use crate::model::offer_type::{OfferType, OfferTypeError};
 use crate::model::speciality::{Speciality, SpecialityError};
 use crate::model::study_form::{StudyForm, StudyFormError};
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
@@ -33,17 +34,18 @@ impl<'a> OfferRepository<'a> {
     pub async fn create(&self, offer: &Offer) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
-                INSERT INTO offer (id, title, degree_id, education_program, study_form_id, faculty, speciality_code, master_type, license_volume, budgetary_places)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                INSERT INTO offer (id, title, degree_id, education_program, faculty, speciality_code, type_id, master_type, study_form_id, license_volume, budgetary_places)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             "#,
             offer.id,
             offer.title,
             (offer.degree as i16),
             offer.education_program,
-            (offer.study_form as i16),
             offer.faculty,
             offer.speciality.code(),
+            (offer.funding_type as i16),
             offer.master_type,
+            (offer.study_form as i16),
             offer.license_volume,
             offer.budgetary_places
         )
@@ -57,7 +59,7 @@ impl<'a> OfferRepository<'a> {
     pub async fn find_by_id(&self, id: i32) -> RepositoryResult<Vec<Offer>> {
         let rows = sqlx::query!(
             r#"
-            SELECT id, title, degree_id, education_program, study_form_id, faculty, speciality_code, master_type, license_volume, budgetary_places
+            SELECT id, title, degree_id, education_program, faculty, speciality_code, type_id, master_type, study_form_id, license_volume, budgetary_places
             FROM offer
             WHERE id = $1
         "#,
@@ -79,11 +81,14 @@ impl<'a> OfferRepository<'a> {
                 faculty: row.faculty,
                 speciality: Speciality::try_from(row.speciality_code.as_str())
                     .map_err(ModelError::Speciality)?,
+                funding_type: OfferType::try_from(row.type_id as i8)
+                    .map_err(|_| OfferTypeError::InvalidCode(row.type_id as i8))
+                    .map_err(ModelError::OfferType)?,
                 master_type: row.master_type,
-                license_volume: row.license_volume,
                 study_form: StudyForm::try_from(row.study_form_id as i8)
                     .map_err(|_| StudyFormError::UnknownId(row.study_form_id as i8))
                     .map_err(ModelError::StudyForm)?,
+                license_volume: row.license_volume,
                 budgetary_places: row.budgetary_places,
             };
             offers.push(offer);
@@ -95,7 +100,7 @@ impl<'a> OfferRepository<'a> {
     pub async fn find_all(&self) -> RepositoryResult<Vec<Offer>> {
         let rows = sqlx::query!(
             r#"
-            SELECT id, title, degree_id, education_program, study_form_id, faculty, speciality_code, master_type, license_volume, budgetary_places
+            SELECT id, title, degree_id, education_program, faculty, speciality_code, type_id, master_type, study_form_id, license_volume, budgetary_places
             FROM offer
         "#)
             .fetch_all(&self.db.pool)
@@ -120,6 +125,9 @@ impl<'a> OfferRepository<'a> {
                         SpecialityError::UnknownSpecialityCode(row.speciality_code)
                     })
                     .map_err(ModelError::Speciality)?,
+                funding_type: OfferType::try_from(row.type_id as i8)
+                    .map_err(|_| OfferTypeError::InvalidCode(row.type_id as i8))
+                    .map_err(ModelError::OfferType)?,
                 master_type: row.master_type,
                 license_volume: row.license_volume,
                 budgetary_places: row.budgetary_places,
@@ -139,17 +147,19 @@ impl<'a> OfferRepository<'a> {
                     education_program = $3,
                     faculty = $4,
                     speciality_code = $5,
-                    master_type = $6,
-                    study_form_id = $7,
-                    license_volume = $8,
-                    budgetary_places = $9
-                WHERE id = $10
+                    type_id = $6,
+                    master_type = $7,
+                    study_form_id = $8,
+                    license_volume = $9,
+                    budgetary_places = $10
+                WHERE id = $11
             "#,
             offer.title,
             (offer.degree as i16),
             offer.education_program,
             offer.faculty,
             offer.speciality.code(),
+            (offer.funding_type as i16),
             offer.master_type,
             (offer.study_form as i16),
             offer.license_volume,

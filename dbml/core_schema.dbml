@@ -62,6 +62,11 @@ Table degree {
   description varchar [not null]
 }
 
+Table offer_type {
+  id integer [primary key]
+  description varchar [not null]
+}
+
 Table applicant {
   id integer [primary key]
   name varchar [not null]
@@ -94,12 +99,14 @@ Table offer {
   education_program varchar [not null]
   faculty varchar
   speciality_code varchar [not null]
+  type_id integer [not null]
   master_type varchar
   license_volume integer [not null]
   budgetary_places integer [not null]
   study_form_id integer [not null]
 }
 
+Ref offer_study_type: offer.type_id > offer_type.id
 Ref offer_study_form: offer.study_form_id > study_form.id
 Ref offer_degree: offer.degree_id > degree.id
 Ref offer_speciality: offer.speciality_code > speciality.code

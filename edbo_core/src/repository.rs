@@ -29,6 +29,7 @@ pub mod institution;
 pub mod institution_category;
 pub mod knowledge_field;
 pub mod offer;
+pub mod offer_type;
 pub mod offers_university;
 pub mod ownership_form;
 pub mod priority;

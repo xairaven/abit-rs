@@ -139,9 +139,10 @@ pub async fn list(
                 education_program,
                 faculty,
                 speciality,
+                funding_type: offer_type,
                 master_type,
-                license_volume,
                 study_form,
+                license_volume,
                 budgetary_places,
             };
             offers.push(offer);

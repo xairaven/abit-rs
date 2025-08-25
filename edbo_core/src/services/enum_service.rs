@@ -4,6 +4,7 @@ use crate::repository::Repository;
 use crate::repository::degree::DegreeRepository;
 use crate::repository::institution_category::InstitutionCategoryRepository;
 use crate::repository::knowledge_field::KnowledgeFieldRepository;
+use crate::repository::offer_type::OfferTypeRepository;
 use crate::repository::ownership_form::OwnershipFormRepository;
 use crate::repository::priority::PriorityRepository;
 use crate::repository::region::RegionRepository;
@@ -17,6 +18,7 @@ pub struct EnumService<'a> {
     degrees_repository: DegreeRepository<'a>,
     institution_category_repository: InstitutionCategoryRepository<'a>,
     knowledge_field_repository: KnowledgeFieldRepository<'a>,
+    offer_type_repository: OfferTypeRepository<'a>,
     ownership_form_repository: OwnershipFormRepository<'a>,
     priority_repository: PriorityRepository<'a>,
     region_repository: RegionRepository<'a>,
@@ -34,6 +36,7 @@ impl<'a> Service<'a> for EnumService<'a> {
             degrees_repository: DegreeRepository::new(database),
             institution_category_repository: InstitutionCategoryRepository::new(database),
             knowledge_field_repository: KnowledgeFieldRepository::new(database),
+            offer_type_repository: OfferTypeRepository::new(database),
             ownership_form_repository: OwnershipFormRepository::new(database),
             priority_repository: PriorityRepository::new(database),
             region_repository: RegionRepository::new(database),
@@ -71,6 +74,13 @@ impl<'a> EnumService<'a> {
             self.knowledge_field_repository.create().await?;
         } else {
             log::info!("Knowledge fields are already populated, skipping...");
+        }
+
+        if self.offer_type_repository.is_empty().await? {
+            log::info!("Offer types are empty, creating...");
+            self.offer_type_repository.create().await?;
+        } else {
+            log::info!("Offer types are already populated, skipping...");
         }
 
         if self.ownership_form_repository.is_empty().await? {
