@@ -1,7 +1,6 @@
 use crate::database::Database;
 use crate::model::applicant::{Applicant, GradeComponent};
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
-use sqlx::Row;
 
 pub struct ApplicantRepository<'a> {
     db: &'a Database,
@@ -78,38 +77,22 @@ impl<'a> ApplicantRepository<'a> {
         }
     }
 
-    pub async fn find_all(
-        &self, limit: Option<i32>, offset: Option<i32>,
-    ) -> RepositoryResult<Vec<Applicant>> {
-        let query = match (limit, offset) {
-            (Some(l), Some(o)) => format!(
-                "SELECT id, name, grade_components FROM applicant LIMIT {} OFFSET {}",
-                l, o
-            ),
-            (Some(l), None) => format!(
-                "SELECT id, name, grade_components FROM applicant LIMIT {}",
-                l
-            ),
-            (None, Some(o)) => format!(
-                "SELECT id, name, grade_components FROM applicant OFFSET {}",
-                o
-            ),
-            (None, None) => {
-                "SELECT id, name, grade_components FROM applicant".to_string()
-            },
-        };
-
-        let rows = sqlx::query(&query)
-            .fetch_all(&self.db.pool)
-            .await
-            .map_err(RepositoryError::Sql)?;
+    pub async fn find_all(&self) -> RepositoryResult<Vec<Applicant>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT id, name, grade_components FROM applicant
+        "#
+        )
+        .fetch_all(&self.db.pool)
+        .await
+        .map_err(RepositoryError::Sql)?;
 
         let mut applicants = Vec::new();
 
         for row in rows {
-            let id: i32 = row.get(0);
-            let name: String = row.get(1);
-            let grade_components_value: serde_json::Value = row.get(2);
+            let id: i32 = row.id;
+            let name: String = row.name;
+            let grade_components_value: serde_json::Value = row.grade_components;
 
             let grade_components: Vec<GradeComponent> =
                 serde_json::from_value(grade_components_value)

@@ -7,7 +7,6 @@ use crate::model::status::{ApplicationStatus, ApplicationStatusError};
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
 use bigdecimal::BigDecimal;
 use num_traits::cast::ToPrimitive;
-use sqlx::Row;
 
 pub struct ApplicationRepository<'a> {
     db: &'a Database,
@@ -136,51 +135,38 @@ impl<'a> ApplicationRepository<'a> {
         Ok(applications)
     }
 
-    pub async fn find_all(
-        &self, limit: Option<i32>, offset: Option<i32>,
-    ) -> RepositoryResult<Vec<Application>> {
-        let query = match (limit, offset) {
-            (Some(l), Some(o)) => format!(
-                "SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id FROM application LIMIT {} OFFSET {}",
-                l, o
-            ),
-            (Some(l), None) => format!(
-                "SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id FROM application LIMIT {}",
-                l
-            ),
-            (None, Some(o)) => format!(
-                "SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id FROM application OFFSET {}",
-                o
-            ),
-            (None, None) => {
-                "SELECT number_in_list, status_id, grade, priority_id, offer_id, user_id FROM application ".to_string()
-            },
-        };
-
-        let rows = sqlx::query(&query)
-            .fetch_all(&self.db.pool)
-            .await
-            .map_err(RepositoryError::Sql)?;
+    pub async fn find_all(&self) -> RepositoryResult<Vec<Application>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT number_in_list, status_id, grade,
+                   priority_id, offer_id, user_id FROM application
+                   "#
+        )
+        .fetch_all(&self.db.pool)
+        .await
+        .map_err(RepositoryError::Sql)?;
 
         let mut applications = Vec::new();
         for row in rows {
             let application = Application {
-                number_in_list: row.get(0),
-                status: ApplicationStatus::try_from(row.get::<i8, usize>(1)).map_err(
+                number_in_list: row.number_in_list,
+                status: ApplicationStatus::try_from(row.status_id as i8).map_err(
                     |_| {
                         ModelError::ApplicationStatus(
-                            ApplicationStatusError::UnknownCode(row.get(1)),
+                            ApplicationStatusError::UnknownCode(row.status_id as i32),
                         )
                     },
                 )?,
-                grade: row.get::<BigDecimal, usize>(2).to_f32().ok_or(
-                    ModelError::GradeComponent(GradeComponentError::FailedFromBigInt),
-                )?,
-                priority: Priority::try_from(row.get::<i8, usize>(3)).map_err(|_| {
-                    ModelError::Priority(PriorityError::UnknownCode(row.get(3)))
+                grade: row.grade.to_f32().ok_or(ModelError::GradeComponent(
+                    GradeComponentError::FailedFromBigInt,
+                ))?,
+                priority: Priority::try_from(row.priority_id as i8).map_err(|_| {
+                    ModelError::Priority(PriorityError::UnknownCode(
+                        row.priority_id as i32,
+                    ))
                 })?,
-                offer_id: row.get(4),
-                user_id: row.get(5),
+                offer_id: row.offer_id,
+                user_id: row.user_id,
             };
             applications.push(application);
         }

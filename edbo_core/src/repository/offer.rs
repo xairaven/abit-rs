@@ -5,7 +5,6 @@ use crate::model::offer::Offer;
 use crate::model::speciality::{Speciality, SpecialityError};
 use crate::model::study_form::{StudyForm, StudyFormError};
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
-use sqlx::Row;
 
 pub struct OfferRepository<'a> {
     db: &'a Database,
@@ -93,19 +92,12 @@ impl<'a> OfferRepository<'a> {
         Ok(offers)
     }
 
-    pub async fn find_all(
-        &self, limit: Option<i32>, offset: Option<i32>,
-    ) -> RepositoryResult<Vec<Offer>> {
-        let select = "SELECT id, title, degree_id, education_program, study_form_id, faculty, speciality_code, master_type, license_volume, budgetary_places FROM offer";
-
-        let query = match (limit, offset) {
-            (Some(l), Some(o)) => format!("{} LIMIT {} OFFSET {}", select, l, o),
-            (Some(l), None) => format!("{} LIMIT {}", select, l),
-            (None, Some(o)) => format!("{} OFFSET {}", select, o),
-            (None, None) => select.to_string(),
-        };
-
-        let rows = sqlx::query(&query)
+    pub async fn find_all(&self) -> RepositoryResult<Vec<Offer>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT id, title, degree_id, education_program, study_form_id, faculty, speciality_code, master_type, license_volume, budgetary_places
+            FROM offer
+        "#)
             .fetch_all(&self.db.pool)
             .await
             .map_err(RepositoryError::Sql)?;
@@ -113,24 +105,24 @@ impl<'a> OfferRepository<'a> {
         let mut offers = Vec::new();
         for row in rows {
             let offer = Offer {
-                id: row.get(0),
-                title: row.get(1),
-                degree: Degree::try_from(row.get::<i16, _>(2) as i8)
+                id: row.id,
+                title: row.title,
+                degree: Degree::try_from(row.degree_id as i8)
                     .map_err(DegreeError::UnknownDegree)
                     .map_err(ModelError::Degree)?,
-                education_program: row.get(3),
-                study_form: StudyForm::try_from(row.get::<i16, _>(4) as i8)
-                    .map_err(|_| StudyFormError::UnknownId(row.get::<i16, _>(7) as i8))
+                education_program: row.education_program,
+                study_form: StudyForm::try_from(row.study_form_id as i8)
+                    .map_err(|_| StudyFormError::UnknownId(row.study_form_id as i8))
                     .map_err(ModelError::StudyForm)?,
-                faculty: row.get(5),
-                speciality: Speciality::try_from(row.get::<&str, _>(6))
+                faculty: row.faculty,
+                speciality: Speciality::try_from(row.speciality_code.as_str())
                     .map_err(|_| {
-                        SpecialityError::UnknownSpecialityCode(row.get::<String, _>(4))
+                        SpecialityError::UnknownSpecialityCode(row.speciality_code)
                     })
                     .map_err(ModelError::Speciality)?,
-                master_type: row.get(7),
-                license_volume: row.get(8),
-                budgetary_places: row.get(9),
+                master_type: row.master_type,
+                license_volume: row.license_volume,
+                budgetary_places: row.budgetary_places,
             };
             offers.push(offer);
         }

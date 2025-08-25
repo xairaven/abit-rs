@@ -1,7 +1,6 @@
 use crate::database::Database;
 use crate::model::offers_university::OffersUniversity;
 use crate::repository::{Repository, RepositoryError, RepositoryResult};
-use sqlx::Row;
 use std::collections::HashMap;
 
 pub struct OfferUniversityRepository<'a> {
@@ -77,27 +76,20 @@ impl<'a> OfferUniversityRepository<'a> {
         Ok(relation)
     }
 
-    pub async fn find_all(
-        &self, limit: Option<i32>, offset: Option<i32>,
-    ) -> RepositoryResult<Vec<OffersUniversity>> {
-        let select = "SELECT university_id, offer_id FROM offers_institutions";
-
-        let query = match (limit, offset) {
-            (Some(l), Some(o)) => format!("{} LIMIT {} OFFSET {}", select, l, o),
-            (Some(l), None) => format!("{} LIMIT {}", select, l),
-            (None, Some(o)) => format!("{} OFFSET {}", select, o),
-            (None, None) => select.to_string(),
-        };
-
-        let rows = sqlx::query(&query)
-            .fetch_all(&self.db.pool)
-            .await
-            .map_err(RepositoryError::Sql)?;
+    pub async fn find_all(&self) -> RepositoryResult<Vec<OffersUniversity>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT university_id, offer_id FROM offers_institutions
+            "#,
+        )
+        .fetch_all(&self.db.pool)
+        .await
+        .map_err(RepositoryError::Sql)?;
 
         let mut relations: HashMap<i32, Vec<i32>> = HashMap::new();
         for row in rows {
-            let university_id: i32 = row.get(0);
-            let offer_id: i32 = row.get(1);
+            let university_id: i32 = row.university_id;
+            let offer_id: i32 = row.offer_id;
             relations.entry(university_id).or_default().push(offer_id);
         }
 
