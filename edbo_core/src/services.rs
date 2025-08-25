@@ -6,6 +6,7 @@ pub trait Service<'a>: Send + Sync {
         Self: Sized;
 }
 
+pub mod applications;
 pub mod enum_service;
 pub mod institutions;
 pub mod offer;
