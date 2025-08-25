@@ -18,7 +18,9 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
         services::offer_university::OfferUniversityService::new(&db)
             .get()
             .await?;
-    let offers = api::offers::list(&mut offers_with_institutions).await?;
+    let offers = services::offer::OfferService::new(&db)
+        .get(&mut offers_with_institutions)
+        .await?;
     let (applications, applicants) = api::applications::list(&offers).await?;
     let applicants = applicants.to_vec();
 
