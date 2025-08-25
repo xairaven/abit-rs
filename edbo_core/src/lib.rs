@@ -1,10 +1,14 @@
 use crate::database::Database;
 use crate::error::CoreError;
-
+use crate::services::Service;
 // Main Source: https://zakon.rada.gov.ua/laws/show/z0312-25#Text
 
 pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
     let db = Database::init(&settings).await?;
+
+    services::enum_service::EnumService::new(&db)
+        .build()
+        .await?;
 
     let institutions = api::institution::list().await?;
     let mut offers_with_institutions = api::offers_university::list().await?;
@@ -27,6 +31,7 @@ pub mod error;
 pub mod model;
 pub mod repository;
 pub mod request;
+pub mod services;
 
 pub mod dto {
     pub mod application;
