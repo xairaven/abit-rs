@@ -10,7 +10,9 @@ pub async fn process(settings: InitSettings) -> Result<(), CoreError> {
         .build()
         .await?;
 
-    let institutions = api::institution::list().await?;
+    let institutions = services::institutions::InstitutionService::new(&db)
+        .get()
+        .await?;
     let mut offers_with_institutions = api::offers_university::list().await?;
     let offers = api::offers::list(&mut offers_with_institutions).await?;
     let (applications, applicants) = api::applications::list(&offers).await?;

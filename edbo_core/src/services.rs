@@ -7,3 +7,4 @@ pub trait Service<'a>: Send + Sync {
 }
 
 pub mod enum_service;
+pub mod institutions;
