@@ -4,12 +4,13 @@ use crate::error::CoreError;
 use crate::model::applicant::Applicant;
 use crate::model::application::Application;
 use crate::model::offer::Offer;
-use crate::repository::Repository;
 use crate::repository::applicant::ApplicantRepository;
 use crate::repository::application::ApplicationRepository;
+use crate::repository::{Repository, RepositoryError};
 use crate::services::Service;
 
 pub struct ApplicationService<'a> {
+    db: &'a Database,
     application_repo: ApplicationRepository<'a>,
     applicant_repo: ApplicantRepository<'a>,
 }
@@ -20,6 +21,7 @@ impl<'a> Service<'a> for ApplicationService<'a> {
         Self: Sized,
     {
         Self {
+            db: database,
             application_repo: ApplicationRepository::new(database),
             applicant_repo: ApplicantRepository::new(database),
         }
@@ -33,8 +35,10 @@ impl<'a> ApplicationService<'a> {
         if self.application_repo.is_empty().await?
             || self.applicant_repo.is_empty().await?
         {
-            self.application_repo.truncate().await?;
-            self.applicant_repo.truncate().await?;
+            sqlx::query!("TRUNCATE TABLE applicant, application;")
+                .execute(&self.db.pool)
+                .await
+                .map_err(RepositoryError::Sql)?;
             log::info!(
                 "Both applicant and application tables are clear. Requesting data from API..."
             );

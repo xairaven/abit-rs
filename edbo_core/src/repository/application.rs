@@ -173,13 +173,4 @@ impl<'a> ApplicationRepository<'a> {
 
         Ok(applications)
     }
-
-    pub async fn truncate(&self) -> RepositoryResult<()> {
-        sqlx::query!("TRUNCATE TABLE application;")
-            .execute(&self.db.pool)
-            .await
-            .map_err(RepositoryError::Sql)?;
-
-        Ok(())
-    }
 }

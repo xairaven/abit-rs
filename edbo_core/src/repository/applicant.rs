@@ -143,13 +143,4 @@ impl<'a> ApplicantRepository<'a> {
 
         Ok(result.rows_affected())
     }
-
-    pub async fn truncate(&self) -> RepositoryResult<()> {
-        sqlx::query!("TRUNCATE TABLE applicant;")
-            .execute(&self.db.pool)
-            .await
-            .map_err(RepositoryError::Sql)?;
-
-        Ok(())
-    }
 }
