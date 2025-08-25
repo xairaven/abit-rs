@@ -62,9 +62,15 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
                 .map_err(ApiError::FailedToGetResponseText)?;
             log::debug!("Text from response of application requests: {:?}", text);
 
-            if text.is_empty() {
-                log::warn!("Zero applicants for offer ID: {}", offer.id);
-                continue;
+            if text.is_empty() || text == "{}" {
+                counter += 1;
+                log::warn!(
+                    "({}/{}) Zero applicants for offer ID: {}",
+                    counter,
+                    amount,
+                    offer.id
+                );
+                break;
             }
 
             let dto_map = loop {
