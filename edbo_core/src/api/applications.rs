@@ -110,7 +110,25 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
             let length = dto_map.requests.len() as i32;
 
             for dto in dto_map.requests {
-                let value = Application::try_from_dto(dto, offer.id, &mut applicants)?;
+                let number_in_list = dto.n;
+                let value = match Application::try_from_dto(
+                    dto,
+                    offer.id,
+                    &mut applicants,
+                ) {
+                    Ok(value) => value,
+                    Err(err) => {
+                        log::error!(
+                            "({}/{}) Failed to convert application to normal view. Offer: {}. Number of request: {}. Error {}",
+                            counter,
+                            amount,
+                            offer.id,
+                            number_in_list,
+                            err
+                        );
+                        return Err(CoreError::ModelError(err));
+                    },
+                };
                 applications.push(value);
             }
 
