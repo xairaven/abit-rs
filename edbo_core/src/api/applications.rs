@@ -76,13 +76,27 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
             let dto_map = loop {
                 match serde_json::from_str::<ApplyRequestDtoMap>(&text) {
                     Ok(value) => {
-                        counter += 1;
-                        log::info!(
-                            "({}/{}) Offer applications process succeed. Offer ID: {}.",
-                            counter,
-                            amount,
-                            offer.id
-                        );
+                        match parameters.last == 0 {
+                            true => {
+                                counter += 1;
+                                log::info!(
+                                    "({}/{}) Offer applications process succeed. Offer ID: {}.",
+                                    counter,
+                                    amount,
+                                    offer.id
+                                );
+                            },
+                            false => {
+                                log::info!(
+                                    "({}/{}) ({}) Offer applications process succeed. Offer ID: {}.",
+                                    counter,
+                                    amount,
+                                    parameters.last % 100 + 1,
+                                    offer.id
+                                );
+                            },
+                        }
+
                         break value;
                     },
                     Err(_) => {
