@@ -103,7 +103,8 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
                                     "({}/{}) ({}) Offer applications process succeed. Offer ID: {}.",
                                     counter,
                                     amount,
-                                    parameters.last % 100 + 1,
+                                    // 2 for initial
+                                    parameters.last / 100 + 1,
                                     offer.id
                                 );
                             },
