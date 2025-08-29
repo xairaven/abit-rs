@@ -4,6 +4,7 @@ use crate::error::CoreError;
 use crate::model::applicant::Applicants;
 use crate::model::application::Application;
 use crate::model::offer::Offer;
+use crate::model::offer_type::OfferType;
 use crate::{api, request};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::collections::HashMap;
@@ -38,6 +39,17 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
     let mut applications: Vec<Application> = vec![];
     let mut applicants = Applicants::default();
     for offer in offers {
+        if matches!(offer.funding_type, OfferType::NonBudgetary) {
+            counter += 1;
+            log::info!(
+                "({}/{}) Skipping offer ID: {}. Non-budgetary offer.",
+                counter,
+                amount,
+                offer.id
+            );
+            continue;
+        }
+
         let mut parameters = ApplicantsApi {
             id: offer.id,
             last: 0,
