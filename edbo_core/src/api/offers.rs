@@ -13,7 +13,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use url::Url;
 
 pub async fn list(
-    offers_of_institutes: &mut [OffersUniversity],
+    offers_of_institutes: &[OffersUniversity],
 ) -> Result<Vec<Offer>, CoreError> {
     let base_url = format!("{}/offer/", api::links::MAIN);
     let amount = amount(offers_of_institutes);
@@ -32,7 +32,6 @@ pub async fn list(
     let mut counter: usize = 0;
 
     // Institute ID, Offer ID
-    let mut not_budgetary_offers: Vec<i32> = vec![];
     for university_offers_relation in offers_of_institutes.iter() {
         for offer_id in &university_offers_relation.offers {
             ticker.tick().await;
@@ -73,7 +72,7 @@ pub async fn list(
             let offer_type =
                 OfferType::try_from(offer_type.as_str()).map_err(ModelError::from)?;
             if matches!(offer_type, OfferType::NonBudgetary) {
-                not_budgetary_offers.push(*offer_id);
+                log::warn!("Skipping NON-BUDGETARY offer ID: {}", offer_id);
                 continue;
             }
 
@@ -95,7 +94,6 @@ pub async fn list(
                         "Failed to get license volume for offer ID: {}",
                         offer_id
                     );
-                    not_budgetary_offers.push(*offer_id);
                     continue;
                 },
             };
@@ -112,7 +110,6 @@ pub async fn list(
                             "Failed to get budgetary places for OPEN offer ID: {}",
                             offer_id
                         );
-                        not_budgetary_offers.push(*offer_id);
                         continue;
                     },
                 }
@@ -124,7 +121,6 @@ pub async fn list(
                             "Failed to get budgetary places for FIXED offer ID: {}",
                             offer_id
                         );
-                        not_budgetary_offers.push(*offer_id);
                         continue;
                     },
                 }
@@ -146,17 +142,6 @@ pub async fn list(
                 budgetary_places,
             };
             offers.push(offer);
-        }
-    }
-
-    // Removing non-budgetary offers
-    'offer_loop: for offer_id in not_budgetary_offers {
-        for university_offers_relation in offers_of_institutes.iter_mut() {
-            if let Ok(index) = university_offers_relation.offers.binary_search(&offer_id)
-            {
-                university_offers_relation.offers.remove(index);
-                continue 'offer_loop;
-            }
         }
     }
 
@@ -200,7 +185,7 @@ fn extract_info_by_tag<T: serde::de::DeserializeOwned>(
     Err(ApiError::FailedParsing(text.to_string()))
 }
 
-fn amount(offers_of_institutes: &mut [OffersUniversity]) -> usize {
+fn amount(offers_of_institutes: &[OffersUniversity]) -> usize {
     let mut amount: usize = 0;
     for relation in offers_of_institutes.iter() {
         amount += relation.offers.len();
