@@ -1,42 +1,34 @@
-use common::logging;
+use crate::config::Config;
+use crate::logs::Logger;
+use crate::settings::RuntimeSettings;
 
 #[tokio::main]
 async fn main() -> () {
-    let config = match env::from_env() {
-        Ok(config) => config,
-        Err(error) => {
-            eprintln!("Environment file error. {}", error);
-            std::process::exit(1);
-        },
-    };
-
-    logging::LogSettings {
-        app_name: config.app_name,
-        log_level: config.log_level,
-        format: config.log_format,
-        output: config.log_output,
-    }
-    .setup()
-    .unwrap_or_else(|error| {
-        eprintln!("Logger initialization error. {}", error);
+    let config = Config::from_file().unwrap_or_else(|error| {
+        eprintln!("Error occurred. {}", error);
         std::process::exit(1);
     });
 
-    log::info!("App started.");
-    log::info!("Logger initialized.");
+    let runtime_settings = RuntimeSettings::try_from(config).unwrap_or_else(|error| {
+        eprintln!("Error occurred. {}", error);
+        std::process::exit(1);
+    });
 
-    let settings = edbo_core::InitSettings {
-        database_url: config.database_url,
-    };
+    Logger::from_settings(&runtime_settings)
+        .setup()
+        .unwrap_or_else(|error| {
+            eprintln!("Error occurred. {}", error);
+            std::process::exit(1);
+        });
 
-    match edbo_core::process(settings).await {
-        Ok(client) => client,
-        Err(error) => {
-            dbg!(&error);
-            log::error!("{}", error);
-            return;
-        },
-    };
+    log::info!("Configuration successfully loaded.");
+    log::info!("Runtime settings: {:?}", runtime_settings);
+    log::info!("Logger successfully initialized.");
+
+    log::info!("Starting process...");
 }
 
-pub mod env;
+mod config;
+mod errors;
+mod logs;
+mod settings;

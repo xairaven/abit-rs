@@ -1,7 +1,7 @@
 [package]
 name = "cli"
 version = "0.0.1"
-authors = ["Alex Kovalov <alexkovalevkpi@gmail.com>"]
+authors = ["Oleksandr Kovalov <oleksandr.kovalov.work@gmail.com>"]
 
 edition = "2024"
 rust-version = "1.97.1"
@@ -17,10 +17,13 @@ repository = "https://github.com/xairaven/abit-rs"
 workspace = true
 
 [dependencies]
-common = { path = "../common" }
-edbo_core = { path = "../edbo_core" }
-
-dotenvy = "0.15.7"
-log = "0.4.27"
-thiserror = "2.0.16"
-tokio = { version = "1.47.1", features = ["full"] }
+chrono = "0.4.45"
+fern = "0.7.1"
+log = "0.4.33"
+o2o = "0.5.5"
+thiserror = "2.0.20"
+tokio = { version = "1.53.1", features = ["full"] }
+toml = "1.1.4"
+serde = { version = "1.0.229", features = ["derive"] }
+strum = "0.28.0"
+strum_macros = "0.28.0"
