@@ -1,4 +1,3 @@
-use crate::errors::ClientError;
 use crate::logs;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -16,7 +15,7 @@ pub struct Config {
 impl Config {
     const FILENAME: &str = "config.toml";
 
-    fn path() -> Result<PathBuf, ClientError> {
+    fn path() -> Result<PathBuf, ConfigError> {
         let mut current_dir = std::env::current_exe().map_err(ConfigError::IO)?;
         current_dir.pop(); // Remove executable name
 
@@ -25,7 +24,7 @@ impl Config {
         Ok(current_dir.join(Self::FILENAME))
     }
 
-    pub fn from_file() -> Result<Self, ClientError> {
+    pub fn from_file() -> Result<Self, ConfigError> {
         let path = Self::path()?;
         let text = std::fs::read_to_string(&path);
         let text = match text {
@@ -34,11 +33,11 @@ impl Config {
                 let config = Self::default();
                 config.save_to_file()?;
                 let error = ConfigError::FileNotFound(path);
-                return Err(ClientError::Config(error));
+                return Err(error);
             },
             Err(error) => {
                 let error = ConfigError::from(error);
-                return Err(ClientError::from(error));
+                return Err(error);
             },
         };
         let config: Config =
@@ -46,7 +45,7 @@ impl Config {
         Ok(config)
     }
 
-    pub fn save_to_file(&self) -> Result<(), ClientError> {
+    pub fn save_to_file(&self) -> Result<(), ConfigError> {
         let data = toml::to_string(&self).map_err(ConfigError::Serialization)?;
         let path = Self::path()?;
 

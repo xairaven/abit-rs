@@ -1,4 +1,3 @@
-use crate::errors::ClientError;
 use crate::settings::RuntimeSettings;
 use chrono::{Datelike, Local, Timelike};
 use log::LevelFilter;
@@ -54,7 +53,7 @@ impl Logger {
         }
     }
 
-    pub fn setup(self) -> Result<(), ClientError> {
+    pub fn setup(self) -> Result<(), LogsError> {
         if self.log_level.eq(&LevelFilter::Off) {
             return Ok(());
         }
@@ -84,13 +83,10 @@ impl Logger {
             },
         };
 
-        dispatcher
-            .apply()
-            .map_err(LogsError::SetLoggerError)
-            .map_err(ClientError::Logs)
+        dispatcher.apply().map_err(LogsError::SetLoggerError)
     }
 
-    fn path(directory: PathBuf) -> Result<PathBuf, ClientError> {
+    fn path(directory: PathBuf) -> Result<PathBuf, LogsError> {
         let name = Self::generate_file_name();
         let file_path = directory.join(name);
         Ok(file_path)

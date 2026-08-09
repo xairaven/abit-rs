@@ -4,7 +4,7 @@ use crate::settings::RuntimeSettingsError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum ClientError {
+pub enum ServerError {
     #[error("Configuration. {0}")]
     Config(#[from] ConfigError),
 

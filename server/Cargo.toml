@@ -1,5 +1,5 @@
 [package]
-name = "cli"
+name = "server"
 version = "0.0.1"
 authors = ["Oleksandr Kovalov <oleksandr.kovalov.work@gmail.com>"]
 
