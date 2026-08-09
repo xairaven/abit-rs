@@ -1,5 +1,5 @@
-# dotenv file
-.env
+# Dev Config
+config.toml
 
 # Resources needed for development
 dev-resources
