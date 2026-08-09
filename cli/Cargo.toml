@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["Alex Kovalov <alexkovalevkpi@gmail.com>"]
 
 edition = "2024"
-rust-version = "1.89"
+rust-version = "1.97.1"
 
 categories = ["simulation"]
 keywords = ["applicants", "education"]
