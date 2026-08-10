@@ -1,4 +1,5 @@
 use aes::Aes256;
+use aes::cipher::BlockModeDecrypt;
 use base64::Engine;
 use base64::engine::general_purpose;
 use block_padding::Pkcs7;
@@ -48,7 +49,7 @@ pub fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoErr
 
     let mut buffer = encrypted_data;
     let decrypted_data = cipher
-        .decrypt_padded_mut::<Pkcs7>(&mut buffer)
+        .decrypt_padded::<Pkcs7>(&mut buffer)
         .map_err(CryptoError::WrongPad)?;
 
     let d =
@@ -82,7 +83,7 @@ pub enum CryptoError {
     UnsupportedKeyLength,
 
     #[error("Wrong padding.")]
-    WrongPad(block_padding::UnpadError),
+    WrongPad(block_padding::Error),
 
     #[error("Wrong indexing.")]
     Slicing,
