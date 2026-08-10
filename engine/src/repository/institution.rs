@@ -29,7 +29,7 @@ impl<'a> Repository<'a> for InstitutionRepository<'a> {
     }
 }
 
-impl<'a> InstitutionRepository<'a> {
+impl InstitutionRepository<'_> {
     pub async fn create(&self, institution: &Institution) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
@@ -37,9 +37,9 @@ impl<'a> InstitutionRepository<'a> {
                                          is_from_crimea, registration_year, category_id, ownership_form_id, region_id)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             "#,
-            (institution.id as i32),
+            i32::from(institution.id),
             institution.name,
-            institution.parent_id.map(|id| id as i32),
+            institution.parent_id.map(i32::from),
             institution.short_name,
             institution.english_name,
             institution.is_from_crimea,
@@ -70,6 +70,10 @@ impl<'a> InstitutionRepository<'a> {
         .map_err(RepositoryError::Sql)?;
 
         let mut institutions = Vec::new();
+
+        // TODO: Fix Warnings
+        // casting `i16` to `i8` may truncate the value
+        // casting `i32` to `i16` may truncate the value
         for row in rows {
             let institution = Institution {
                 name: row.name,
@@ -107,21 +111,35 @@ impl<'a> InstitutionRepository<'a> {
             .map_err(RepositoryError::Sql)?;
 
         let mut institutions = Vec::new();
+
+        // TODO: Fix Warnings
+        // casting `i16` to `i8` may truncate the value
+        // casting `i32` to `i16` may truncate the value
         for row in rows {
             let institution = Institution {
                 name: row.name,
+                // TODO: Fix Warning
+                // Casting `i32` to `i16` may truncate the value
                 id: row.id as i16,
+                // TODO: Fix Warning
+                // Casting `i32` to `i16` may truncate the value
                 parent_id: row.parent_id.map(|id| id as i16),
                 short_name: row.short_name,
                 english_name: row.english_name,
                 is_from_crimea: row.is_from_crimea,
                 registration_year: row.registration_year,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 category: InstitutionCategory::try_from(row.category_id as i8)
                     .map_err(InstitutionError::FailedParseCategoryId)
                     .map_err(ModelError::Institution)?,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 ownership_form: OwnershipForm::try_from(row.ownership_form_id as i8)
                     .map_err(InstitutionError::FailedParseOwnershipFormId)
                     .map_err(ModelError::Institution)?,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 region: Region::try_from(row.region_id as i8)
                     .map_err(InstitutionError::FailedParseRegionId)
                     .map_err(ModelError::Institution)?,
@@ -141,7 +159,7 @@ impl<'a> InstitutionRepository<'a> {
                 WHERE id = $10
             "#,
             institution.name,
-            institution.parent_id.map(|id| id as i32),
+            institution.parent_id.map(i32::from),
             institution.short_name,
             institution.english_name,
             institution.is_from_crimea,
@@ -149,7 +167,7 @@ impl<'a> InstitutionRepository<'a> {
             institution.category as i8,
             institution.ownership_form as i8,
             institution.region as i8,
-            institution.id as i32
+            i32::from(institution.id)
         )
         .execute(&self.db.pool)
         .await

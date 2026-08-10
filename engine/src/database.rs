@@ -58,19 +58,16 @@ impl Database {
                 .map_err(DbError::FailedRunQuery)?;
 
         // Creating (or not) core DB
-        match exists.is_none() {
-            true => {
-                log::info!("Core database not exists.");
-                admin_pool
-                    // Make sure to validate database_name thoroughly to avoid SQL injection
-                    .execute(sqlx::AssertSqlSafe(format!("CREATE DATABASE {database_name};")))
-                    .await
-                    .map_err(DbError::FailedCreateCoreDatabase)?;
-                log::info!("Core database \"{database_name}\" successfully created!");
-            },
-            false => {
-                log::info!("Core database \"{database_name}\" exists!");
-            },
+        if exists.is_none() {
+            log::info!("Core database not exists.");
+            admin_pool
+                             // Make sure to validate database_name thoroughly to avoid SQL injection
+                                 .execute(sqlx::AssertSqlSafe(format!("CREATE DATABASE {database_name};")))
+                             .await
+                             .map_err(DbError::FailedCreateCoreDatabase)?;
+            log::info!("Core database \"{database_name}\" successfully created!");
+        } else {
+            log::info!("Core database \"{database_name}\" exists!");
         }
 
         Ok(database_url)

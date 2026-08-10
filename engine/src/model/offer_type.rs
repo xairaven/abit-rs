@@ -31,7 +31,7 @@ impl std::fmt::Display for OfferType {
             Self::NonBudgetary => "Небюджетна",
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

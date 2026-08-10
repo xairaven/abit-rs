@@ -3,7 +3,7 @@ use thiserror::Error;
 
 // Source: https://zakon.rada.gov.ua/laws/show/266-2015-п#n11
 
-#[derive(Debug, PartialEq, EnumIter)]
+#[derive(Debug, PartialEq, Eq, EnumIter)]
 pub enum KnowledgeField {
     // UA: (A) Освіта
     Education,
@@ -62,7 +62,8 @@ impl TryFrom<&str> for KnowledgeField {
 }
 
 impl KnowledgeField {
-    pub fn code(&self) -> &'static str {
+    #[must_use]
+    pub const fn code(&self) -> &'static str {
         match self {
             Self::Education => "A",
             Self::CultureArtsHumanities => "B",
@@ -105,7 +106,7 @@ impl std::fmt::Display for KnowledgeField {
             Self::SecurityDefense => "Безпека та оборона",
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 
@@ -137,7 +138,7 @@ macro_rules! define_specialities {
         }
 
         impl Speciality {
-            pub fn code(&self) -> &'static str {
+            pub const fn code(&self) -> &'static str {
                 match self {
                     $(
                         $(
@@ -147,7 +148,7 @@ macro_rules! define_specialities {
                 }
             }
 
-            pub fn title(&self) -> &'static str {
+            pub const fn title(&self) -> &'static str {
                 match self {
                     $(
                         $(

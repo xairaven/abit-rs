@@ -25,7 +25,7 @@ impl<'a> Repository<'a> for ApplicantRepository<'a> {
     }
 }
 
-impl<'a> ApplicantRepository<'a> {
+impl ApplicantRepository<'_> {
     pub async fn create(&self, applicant: &Applicant) -> RepositoryResult<()> {
         let grade_components_json = serde_json::to_value(&applicant.grade_components)
             .map_err(RepositoryError::Json)?;

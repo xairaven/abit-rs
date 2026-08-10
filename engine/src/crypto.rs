@@ -63,7 +63,7 @@ fn multiply(number: i32, prsid: i32) -> String {
     format!("v{}", number * subtract_value)
 }
 
-fn subtract(prsid: i32) -> i32 {
+const fn subtract(prsid: i32) -> i32 {
     const KEY: i32 = 7500;
     KEY - prsid
 }

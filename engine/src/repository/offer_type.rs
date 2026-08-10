@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for OfferTypeRepository<'a> {
     }
 }
 
-impl<'a> OfferTypeRepository<'a> {
+impl OfferTypeRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for offer_type in OfferType::iter() {
             sqlx::query!(

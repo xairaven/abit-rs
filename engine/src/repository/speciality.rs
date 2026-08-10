@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for SpecialityRepository<'a> {
     }
 }
 
-impl<'a> SpecialityRepository<'a> {
+impl SpecialityRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for speciality in Speciality::iter() {
             sqlx::query!(

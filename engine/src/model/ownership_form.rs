@@ -27,11 +27,11 @@ impl From<&str> for OwnershipForm {
 impl Display for OwnershipForm {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            OwnershipForm::State => "Державна",
-            OwnershipForm::Municipal => "Комунальна",
-            OwnershipForm::Corporate => "Корпоративна",
-            OwnershipForm::Private => "Приватна",
-            OwnershipForm::Unknown => "Не визначено",
+            Self::State => "Державна",
+            Self::Municipal => "Комунальна",
+            Self::Corporate => "Корпоративна",
+            Self::Private => "Приватна",
+            Self::Unknown => "Не визначено",
         };
         write!(f, "{s}")
     }

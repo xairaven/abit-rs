@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for KnowledgeFieldRepository<'a> {
     }
 }
 
-impl<'a> KnowledgeFieldRepository<'a> {
+impl KnowledgeFieldRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for field in KnowledgeField::iter() {
             sqlx::query!(

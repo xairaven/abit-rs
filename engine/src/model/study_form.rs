@@ -34,7 +34,7 @@ impl std::fmt::Display for StudyForm {
             Self::Online => "Дистанційна",
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

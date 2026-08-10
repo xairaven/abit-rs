@@ -30,7 +30,7 @@ impl<'a> Repository<'a> for OfferRepository<'a> {
     }
 }
 
-impl<'a> OfferRepository<'a> {
+impl OfferRepository<'_> {
     pub async fn create(&self, offer: &Offer) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
@@ -74,6 +74,8 @@ impl<'a> OfferRepository<'a> {
             let offer = Offer {
                 id: row.id,
                 title: row.title,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 degree: Degree::try_from(row.degree_id as i8)
                     .map_err(DegreeError::UnknownDegree)
                     .map_err(ModelError::Degree)?,
@@ -81,10 +83,14 @@ impl<'a> OfferRepository<'a> {
                 faculty: row.faculty,
                 speciality: Speciality::try_from(row.speciality_code.as_str())
                     .map_err(ModelError::Speciality)?,
+                // TODO: Fix Warnings
+                // Casting `i16` to `i8` may truncate the value
                 funding_type: OfferType::try_from(row.type_id as i8)
                     .map_err(|_| OfferTypeError::InvalidCode(row.type_id as i8))
                     .map_err(ModelError::OfferType)?,
                 master_type: row.master_type,
+                // TODO: Fix Warnings
+                // Casting `i16` to `i8` may truncate the value
                 study_form: StudyForm::try_from(row.study_form_id as i8)
                     .map_err(|_| StudyFormError::UnknownId(row.study_form_id as i8))
                     .map_err(ModelError::StudyForm)?,
@@ -112,11 +118,17 @@ impl<'a> OfferRepository<'a> {
             let offer = Offer {
                 id: row.id,
                 title: row.title,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 degree: Degree::try_from(row.degree_id as i8)
                     .map_err(DegreeError::UnknownDegree)
                     .map_err(ModelError::Degree)?,
                 education_program: row.education_program,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 study_form: StudyForm::try_from(row.study_form_id as i8)
+                    // TODO: Fix Warning
+                    // Casting `i16` to `i8` may truncate the value
                     .map_err(|_| StudyFormError::UnknownId(row.study_form_id as i8))
                     .map_err(ModelError::StudyForm)?,
                 faculty: row.faculty,
@@ -125,7 +137,11 @@ impl<'a> OfferRepository<'a> {
                         SpecialityError::UnknownSpecialityCode(row.speciality_code)
                     })
                     .map_err(ModelError::Speciality)?,
+                // TODO: Fix Warning
+                // Casting `i16` to `i8` may truncate the value
                 funding_type: OfferType::try_from(row.type_id as i8)
+                    // TODO: Fix Warning
+                    // Casting `i16` to `i8` may truncate the value
                     .map_err(|_| OfferTypeError::InvalidCode(row.type_id as i8))
                     .map_err(ModelError::OfferType)?,
                 master_type: row.master_type,

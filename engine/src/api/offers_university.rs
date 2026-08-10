@@ -42,7 +42,7 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
     );
 
     let mut offers: Vec<OffersUniversity> = vec![];
-    for (_, speciality) in speciality::ALL_SPECIALITIES.iter() {
+    for (_, speciality) in speciality::ALL_SPECIALITIES {
         parameters.speciality = Some(speciality.code().to_string());
 
         ticker.tick().await;
@@ -61,23 +61,20 @@ pub async fn list() -> Result<Vec<OffersUniversity>, CoreError> {
             .text()
             .await
             .map_err(ApiError::FailedToGetResponseText)?;
-        log::debug!("Text from response: {:?}", text);
+        log::debug!("Text from response: {text:?}");
 
         let dto_map = loop {
-            match serde_json::from_str::<OffersUniversityMapDto>(&text) {
-                Ok(value) => {
-                    log::info!(
-                        "Offers <-> Institution list response success for {} speciality.",
-                        speciality.code()
-                    );
-                    break value;
-                },
-                Err(_) => {
-                    let error: ErrorResponse =
-                        serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
-                    error.handle_request_limit().await;
-                },
-            };
+            if let Ok(value) = serde_json::from_str::<OffersUniversityMapDto>(&text) {
+                log::info!(
+                    "Offers <-> Institution list response success for {} speciality.",
+                    speciality.code()
+                );
+                break value;
+            }
+
+            let error: ErrorResponse =
+                serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
+            error.handle_request_limit().await;
         };
 
         for dto in dto_map.universities {
@@ -135,6 +132,6 @@ impl ApiFetcherUrl for OffersUniversitiesApi {
         Self::append_optional_parameter(url, UNIVERSITY, &self.university);
         Self::append_optional_parameter(url, STUDY_PROGRAM, &self.study_program);
         Self::append_optional_parameter(url, EDUCATION_FORM, &self.education_form);
-        Self::append_optional_parameter(url, COURSE, &self.course)
+        Self::append_optional_parameter(url, COURSE, &self.course);
     }
 }

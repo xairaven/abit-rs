@@ -64,6 +64,7 @@ impl Degree {
     }
 
     /// Possible base by qualification
+    #[must_use]
     pub fn possible_bases(&self) -> Option<Vec<Self>> {
         match self {
             Self::Bachelor | Self::Master => Some(vec![

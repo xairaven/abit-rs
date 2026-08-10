@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for StudyFormRepository<'a> {
     }
 }
 
-impl<'a> StudyFormRepository<'a> {
+impl StudyFormRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for form in StudyForm::iter() {
             sqlx::query!(

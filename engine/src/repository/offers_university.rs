@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for OfferUniversityRepository<'a> {
     }
 }
 
-impl<'a> OfferUniversityRepository<'a> {
+impl OfferUniversityRepository<'_> {
     pub async fn create(
         &self, offer_university_relation: &OffersUniversity,
     ) -> RepositoryResult<()> {

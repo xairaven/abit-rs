@@ -10,7 +10,7 @@ pub mod links {
 }
 
 pub const INTERVAL_FOR_REQUESTS: tokio::time::Duration =
-    tokio::time::Duration::from_millis(2000);
+    tokio::time::Duration::from_secs(2);
 pub const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0";
 
 #[derive(Debug, Error)]
@@ -48,6 +48,7 @@ pub enum ExportFormat {
 }
 
 impl ExportFormat {
+    #[must_use]
     pub const fn into_static_str(self) -> &'static str {
         match self {
             Self::Excel => "xlsx",
@@ -97,7 +98,7 @@ impl ErrorResponse {
             .eq("Перевищено ліміт запитів. Спробуйте пізніше!")
         {
             log::warn!("Sleeping 60 secs...");
-            tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
+            tokio::time::sleep(tokio::time::Duration::from_mins(1)).await;
         }
     }
 }

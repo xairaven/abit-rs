@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for OwnershipFormRepository<'a> {
     }
 }
 
-impl<'a> OwnershipFormRepository<'a> {
+impl OwnershipFormRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for form in OwnershipForm::iter() {
             sqlx::query!(

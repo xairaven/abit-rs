@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for RegionRepository<'a> {
     }
 }
 
-impl<'a> RegionRepository<'a> {
+impl RegionRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for region in Region::iter() {
             sqlx::query!(

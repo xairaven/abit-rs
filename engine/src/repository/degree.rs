@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for DegreeRepository<'a> {
     }
 }
 
-impl<'a> DegreeRepository<'a> {
+impl DegreeRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for degree in Degree::iter() {
             sqlx::query!(

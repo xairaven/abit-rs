@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for ApplicationStatusRepository<'a> {
     }
 }
 
-impl<'a> ApplicationStatusRepository<'a> {
+impl ApplicationStatusRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for status in ApplicationStatus::iter() {
             sqlx::query!(

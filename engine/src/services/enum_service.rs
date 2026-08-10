@@ -12,6 +12,8 @@ use crate::repository::status::ApplicationStatusRepository;
 use crate::repository::study_form::StudyFormRepository;
 use crate::services::Service;
 
+// TODO: Refactor
+// Warning: all fields have the same postfix: `repository`
 pub struct EnumService<'a> {
     application_status_repository: ApplicationStatusRepository<'a>,
     degrees_repository: DegreeRepository<'a>,
@@ -43,7 +45,7 @@ impl<'a> Service<'a> for EnumService<'a> {
     }
 }
 
-impl<'a> EnumService<'a> {
+impl EnumService<'_> {
     pub async fn build(&self) -> Result<(), CoreError> {
         if self.application_status_repository.is_empty().await? {
             log::info!("Application statuses are empty, creating...");

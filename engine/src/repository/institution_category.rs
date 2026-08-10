@@ -26,7 +26,7 @@ impl<'a> Repository<'a> for InstitutionCategoryRepository<'a> {
     }
 }
 
-impl<'a> InstitutionCategoryRepository<'a> {
+impl InstitutionCategoryRepository<'_> {
     pub async fn create(&self) -> RepositoryResult<()> {
         for category in InstitutionCategory::iter() {
             sqlx::query!(

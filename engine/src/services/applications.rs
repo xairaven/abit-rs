@@ -28,7 +28,7 @@ impl<'a> Service<'a> for ApplicationService<'a> {
     }
 }
 
-impl<'a> ApplicationService<'a> {
+impl ApplicationService<'_> {
     pub async fn get(
         &self, offers: &[Offer],
     ) -> Result<(Vec<Application>, Vec<Applicant>), CoreError> {
@@ -44,14 +44,14 @@ impl<'a> ApplicationService<'a> {
             );
             let (applications, applicants) = api::applications::list(offers).await?;
             let applicants = applicants.to_vec();
-            for application in applications.iter() {
+            for application in &applications {
                 self.application_repo.create(application).await?;
             }
             log::info!(
                 "Application table populated with {} records",
                 applications.len()
             );
-            for applicant in applicants.iter() {
+            for applicant in &applicants {
                 self.applicant_repo.create(applicant).await?;
             }
             log::info!(

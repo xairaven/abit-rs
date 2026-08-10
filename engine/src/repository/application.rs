@@ -31,7 +31,7 @@ impl<'a> Repository<'a> for ApplicationRepository<'a> {
     }
 }
 
-impl<'a> ApplicationRepository<'a> {
+impl ApplicationRepository<'_> {
     pub async fn create(&self, application: &Application) -> RepositoryResult<()> {
         sqlx::query!(
             r#"
@@ -39,10 +39,10 @@ impl<'a> ApplicationRepository<'a> {
                 VALUES ($1, $2, $3, $4, $5, $6)
             "#,
             application.number_in_list,
-            Into::<i8>::into(application.status) as i16,
+            i16::from(Into::<i8>::into(application.status)),
             BigDecimal::try_from(application.grade)
                 .map_err(|err| ModelError::GradeComponent(GradeComponentError::FailedToBigDecimal(err)))?,
-            Into::<i8>::into(application.priority) as i16,
+            i16::from(Into::<i8>::into(application.priority)),
             application.offer_id,
             application.user_id
         )
@@ -67,13 +67,15 @@ impl<'a> ApplicationRepository<'a> {
         .map_err(RepositoryError::Sql)?;
 
         let mut applications = Vec::new();
+        // TODO: Fix Warnings
+        // casting `i16` to `i8` may truncate the value
         for row in rows {
             let application = Application {
                 number_in_list: row.number_in_list,
                 status: ApplicationStatus::try_from(row.status_id as i8).map_err(
                     |_| {
                         ModelError::ApplicationStatus(
-                            ApplicationStatusError::UnknownCode(row.status_id as i32),
+                            ApplicationStatusError::UnknownCode(i32::from(row.status_id)),
                         )
                     },
                 )?,
@@ -104,13 +106,15 @@ impl<'a> ApplicationRepository<'a> {
         .map_err(RepositoryError::Sql)?;
 
         let mut applications = Vec::new();
+        // TODO: Fix Warnings
+        // casting `i16` to `i8` may truncate the value
         for row in rows {
             let application = Application {
                 number_in_list: row.number_in_list,
                 status: ApplicationStatus::try_from(row.status_id as i8).map_err(
                     |_| {
                         ModelError::ApplicationStatus(
-                            ApplicationStatusError::UnknownCode(row.status_id as i32),
+                            ApplicationStatusError::UnknownCode(i32::from(row.status_id)),
                         )
                     },
                 )?,
@@ -139,13 +143,15 @@ impl<'a> ApplicationRepository<'a> {
         .map_err(RepositoryError::Sql)?;
 
         let mut applications = Vec::new();
+        // TODO: Fix Warnings
+        // casting `i16` to `i8` may truncate the value
         for row in rows {
             let application = Application {
                 number_in_list: row.number_in_list,
                 status: ApplicationStatus::try_from(row.status_id as i8).map_err(
                     |_| {
                         ModelError::ApplicationStatus(
-                            ApplicationStatusError::UnknownCode(row.status_id as i32),
+                            ApplicationStatusError::UnknownCode(i32::from(row.status_id)),
                         )
                     },
                 )?,

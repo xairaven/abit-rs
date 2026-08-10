@@ -15,6 +15,8 @@ impl TryFrom<OffersUniversityDto> for OffersUniversity {
     fn try_from(dto: OffersUniversityDto) -> Result<Self, Self::Error> {
         let offers_dto = dto.ids.split(',').collect::<Vec<&str>>();
 
+        // TODO: Fix warning
+        // Casting `i32` to `usize` may lose the sign of the value
         if dto.n as usize != offers_dto.len() {
             return Err(Self::Error::OffersUniversity(
                 OffersUniversityError::WrongIdAmount,

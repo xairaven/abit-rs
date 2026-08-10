@@ -37,31 +37,31 @@ impl TryFrom<&str> for Region {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
-            "Вінницька обл." => Ok(Region::Vinnytsia),
-            "Волинська обл." => Ok(Region::Volyn),
-            "Дніпропетровська обл." => Ok(Region::Dnipropetrovsk),
-            "Донецька обл." => Ok(Region::Donetsk),
-            "Житомирська обл." => Ok(Region::Zhytomyr),
-            "Закарпатська обл." => Ok(Region::Zakarpattia),
-            "Запорізька обл." => Ok(Region::Zaporizhzhia),
-            "Івано-Франківська обл." => Ok(Region::IvanoFrankivsk),
-            "Київська обл." => Ok(Region::Kyiv),
-            "Кіровоградська обл." => Ok(Region::Kirovohrad),
-            "Луганська обл." => Ok(Region::Luhansk),
-            "Львівська обл." => Ok(Region::Lviv),
-            "Миколаївська обл." => Ok(Region::Mykolaiv),
-            "Одеська обл." => Ok(Region::Odesa),
-            "Полтавська обл." => Ok(Region::Poltava),
-            "Рівненська обл." => Ok(Region::Rivne),
-            "Сумська обл." => Ok(Region::Sumy),
-            "Тернопільська обл." => Ok(Region::Ternopil),
-            "Харківська обл." => Ok(Region::Kharkiv),
-            "Херсонська обл." => Ok(Region::Kherson),
-            "Хмельницька обл." => Ok(Region::Khmelnytskyi),
-            "Черкаська обл." => Ok(Region::Cherkasy),
-            "Чернівецька обл." => Ok(Region::Chernivtsi),
-            "Чернігівська обл." => Ok(Region::Chernihiv),
-            "м. Київ" => Ok(Region::KyivCity),
+            "Вінницька обл." => Ok(Self::Vinnytsia),
+            "Волинська обл." => Ok(Self::Volyn),
+            "Дніпропетровська обл." => Ok(Self::Dnipropetrovsk),
+            "Донецька обл." => Ok(Self::Donetsk),
+            "Житомирська обл." => Ok(Self::Zhytomyr),
+            "Закарпатська обл." => Ok(Self::Zakarpattia),
+            "Запорізька обл." => Ok(Self::Zaporizhzhia),
+            "Івано-Франківська обл." => Ok(Self::IvanoFrankivsk),
+            "Київська обл." => Ok(Self::Kyiv),
+            "Кіровоградська обл." => Ok(Self::Kirovohrad),
+            "Луганська обл." => Ok(Self::Luhansk),
+            "Львівська обл." => Ok(Self::Lviv),
+            "Миколаївська обл." => Ok(Self::Mykolaiv),
+            "Одеська обл." => Ok(Self::Odesa),
+            "Полтавська обл." => Ok(Self::Poltava),
+            "Рівненська обл." => Ok(Self::Rivne),
+            "Сумська обл." => Ok(Self::Sumy),
+            "Тернопільська обл." => Ok(Self::Ternopil),
+            "Харківська обл." => Ok(Self::Kharkiv),
+            "Херсонська обл." => Ok(Self::Kherson),
+            "Хмельницька обл." => Ok(Self::Khmelnytskyi),
+            "Черкаська обл." => Ok(Self::Cherkasy),
+            "Чернівецька обл." => Ok(Self::Chernivtsi),
+            "Чернігівська обл." => Ok(Self::Chernihiv),
+            "м. Київ" => Ok(Self::KyivCity),
             _ => Err(Self::Error::UnknownRegion(value.to_string())),
         }
     }
@@ -97,7 +97,7 @@ impl std::fmt::Display for Region {
             Self::KyivCity => "м. Київ",
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

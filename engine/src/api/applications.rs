@@ -9,6 +9,8 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use std::collections::HashMap;
 use url::Url;
 
+// TODO: Refactor
+// Warning: this function has too many lines (115/100)
 pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), CoreError> {
     let base_url = format!("{}/offer-requests/", api::links::MAIN);
     let base_url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
@@ -16,13 +18,13 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
     let amount = offers.len();
     let mut counter: usize = 0;
 
-    log::info!(
-        "Started parsing applications. Total amount of offers: {}",
-        amount
-    );
+    log::info!("Started parsing applications. Total amount of offers: {amount}");
 
     let client = request::Client::build()?;
 
+    // TODO: Fix warning
+    // collection is never read
+    // ?????
     let mut form: HashMap<String, i32> = HashMap::new();
     form.insert(String::from("last"), 1);
 
@@ -60,7 +62,7 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
                 .text()
                 .await
                 .map_err(ApiError::FailedToGetResponseText)?;
-            log::debug!("Text from response of application requests: {:?}", text);
+            log::debug!("Text from response of application requests: {text:?}");
 
             if text.is_empty() || text == "{}" {
                 counter += 1;
@@ -74,40 +76,37 @@ pub async fn list(offers: &[Offer]) -> Result<(Vec<Application>, Applicants), Co
             }
 
             let dto_map = loop {
-                match serde_json::from_str::<ApplyRequestDtoMap>(&text) {
-                    Ok(value) => {
-                        match parameters.last == 0 {
-                            true => {
-                                counter += 1;
-                                log::info!(
-                                    "({}/{}) Offer applications process succeed. Offer ID: {}.",
-                                    counter,
-                                    amount,
-                                    offer.id
-                                );
-                            },
-                            false => {
-                                log::info!(
-                                    "({}/{}) ({}) Offer applications process succeed. Offer ID: {}.",
-                                    counter,
-                                    amount,
-                                    // 2 for initial
-                                    parameters.last / 100 + 1,
-                                    offer.id
-                                );
-                            },
-                        }
+                if let Ok(value) = serde_json::from_str::<ApplyRequestDtoMap>(&text) {
+                    if parameters.last == 0 {
+                        counter += 1;
+                        log::info!(
+                            "({}/{}) Offer applications process succeed. Offer ID: {}.",
+                            counter,
+                            amount,
+                            offer.id
+                        );
+                    } else {
+                        log::info!(
+                            "({}/{}) ({}) Offer applications process succeed. Offer ID: {}.",
+                            counter,
+                            amount,
+                            // 2 for initial
+                            parameters.last / 100 + 1,
+                            offer.id
+                        );
+                    }
 
-                        break value;
-                    },
-                    Err(_) => {
-                        let error: ErrorResponse = serde_json::from_str(&text)
-                            .map_err(ApiError::JsonParseFailed)?;
-                        error.handle_request_limit().await;
-                    },
-                };
+                    break value;
+                }
+
+                let error: ErrorResponse =
+                    serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
+                error.handle_request_limit().await;
             };
 
+            // TODO: Fix warnings.
+            // Casting `usize` to `i32` may truncate the value on targets with 64-bit wide pointers
+            // Casting `usize` to `i32` may wrap around the value on targets with 32-bit wide pointers
             let length = dto_map.requests.len() as i32;
 
             for dto in dto_map.requests {

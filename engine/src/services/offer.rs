@@ -22,14 +22,14 @@ impl<'a> Service<'a> for OfferService<'a> {
     }
 }
 
-impl<'a> OfferService<'a> {
+impl OfferService<'_> {
     pub async fn get(
         &self, offers_with_institutions: &mut [OffersUniversity],
     ) -> Result<Vec<Offer>, CoreError> {
         let list = if self.repo.is_empty().await? {
             log::info!("Offers table is clear. Requesting data from API...");
             let list = api::offers::list(offers_with_institutions).await?;
-            for offer in list.iter() {
+            for offer in &list {
                 self.repo.create(offer).await?;
             }
             log::info!("Offers table populated with {} records", list.len());

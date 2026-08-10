@@ -45,7 +45,7 @@ impl Display for ApplicationStatus {
             Self::DeactivatedEnrolled => "Деактивовано (зараховано на навчання)",
         };
 
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 

@@ -71,11 +71,12 @@ impl Display for InstitutionCategory {
             },
             Self::Unknown => "Невідомо",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 
 impl InstitutionCategory {
+    #[must_use]
     pub const fn code(&self) -> Option<i16> {
         match self {
             Self::HigherEducation => Some(1),

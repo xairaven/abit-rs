@@ -31,33 +31,31 @@ impl Applicants {
             }
         }
 
-        match user_index {
-            Some(index) => {
-                let applicant = applicants
-                    .get_mut(index)
-                    .ok_or(ApplicantError::FailedToIndexApplicant(full_name, index))?;
-                for grade in grade_components {
-                    if !applicant.grade_components.contains(&grade) {
-                        applicant.grade_components.push(grade);
-                    }
+        if let Some(index) = user_index {
+            let applicant = applicants
+                .get_mut(index)
+                .ok_or(ApplicantError::FailedToIndexApplicant(full_name, index))?;
+            for grade in grade_components {
+                if !applicant.grade_components.contains(&grade) {
+                    applicant.grade_components.push(grade);
                 }
-                Ok(applicant.id)
-            },
-            None => {
-                let id = self.id_counter;
-                self.id_counter += 1;
+            }
+            Ok(applicant.id)
+        } else {
+            let id = self.id_counter;
+            self.id_counter += 1;
 
-                let new_applicant = Applicant {
-                    id,
-                    name: full_name,
-                    grade_components,
-                };
-                applicants.push(new_applicant);
-                Ok(id)
-            },
+            let new_applicant = Applicant {
+                id,
+                name: full_name,
+                grade_components,
+            };
+            applicants.push(new_applicant);
+            Ok(id)
         }
     }
 
+    #[must_use]
     pub fn to_vec(self) -> Vec<Applicant> {
         let mut applicants: Vec<Applicant> = Vec::new();
         for mut values in self.applicants.into_values() {
@@ -77,6 +75,10 @@ impl Applicants {
                 if exclude_indexes.contains(&i) {
                     continue;
                 }
+                // TODO: Fix warning
+                // strict comparison of `f32` or `f64`
+                // consider comparing them within some margin of error:
+                // `(grade_person.0 - grade_application.0).abs() < error_margin
                 if grade_person.0 == grade_application.0 {
                     equal_count += 1;
                     exclude_indexes.push(i);
@@ -101,7 +103,7 @@ impl TryFrom<GradeComponentDto> for GradeComponent {
             .split(' ')
             .collect::<Vec<&str>>()
             .first()
-            .ok_or(GradeComponentError::FailedToSplit(dto.kv.to_string()))?
+            .ok_or_else(|| GradeComponentError::FailedToSplit(dto.kv.clone()))?
             .parse::<f32>()
             .map_err(GradeComponentError::FailedToParse)?;
 

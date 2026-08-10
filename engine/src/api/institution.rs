@@ -9,6 +9,7 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
     let base_url = format!("{}/universities/", api::links::REGISTRY);
     let mut url = Url::parse(&base_url).map_err(ApiError::FailedToParseUrl)?;
 
+    // TODO: Fix. Adding items after statements is confusing, since items exist from the start of the scope
     const PARAMETERS: InstitutionsApi = InstitutionsApi {
         category: None,
         region_code: None,
@@ -29,7 +30,7 @@ pub async fn list() -> Result<Vec<Institution>, CoreError> {
         .text()
         .await
         .map_err(ApiError::FailedToGetResponseText)?;
-    log::debug!("Text from response: {:?}", text);
+    log::debug!("Text from response: {text:?}");
     let dto_list: Vec<InstitutionDto> =
         serde_json::from_str(&text).map_err(ApiError::JsonParseFailed)?;
 
