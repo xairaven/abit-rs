@@ -1,8 +1,8 @@
-# Dev Config
+# ! Developer section !
+# - Config file for docker container (prod)
 config.toml
-
-# Resources needed for development
-dev-resources
+# - Local env variables, used with `direnv` plugin (shell)
+.envrc
 
 # Any logs
 *.log
