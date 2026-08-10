@@ -20,10 +20,8 @@ impl TryFrom<Config> for RuntimeSettings {
         }
         let database_url = value.database_url;
 
-        let log_level: LevelFilter = match value.log_level {
-            Some(level) => level.into(),
-            None => logs::DEFAULT_LOG_LEVEL,
-        };
+        let log_level: LevelFilter =
+            value.log_level.map_or(logs::DEFAULT_LOG_LEVEL, Into::into);
 
         let log_destination = match value.log_directory {
             Some(directory) => {

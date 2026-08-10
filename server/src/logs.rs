@@ -3,7 +3,7 @@ use chrono::{Datelike, Local, Timelike};
 use log::LevelFilter;
 use o2o::o2o;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use strum_macros::{Display, EnumIter};
 use thiserror::Error;
 
@@ -70,14 +70,14 @@ impl Logger {
                     time.minute(),
                     record.level(),
                     message
-                ))
+                ));
             },
         );
 
         let dispatcher = match self.log_destination {
             LogDestination::Stdout => dispatcher.chain(std::io::stdout()),
             LogDestination::Directory(directory) => {
-                let file_path = Self::path(directory)?;
+                let file_path = Self::path(&directory);
                 let file = fern::log_file(file_path).map_err(LogsError::IO)?;
                 dispatcher.chain(file)
             },
@@ -86,10 +86,9 @@ impl Logger {
         dispatcher.apply().map_err(LogsError::SetLoggerError)
     }
 
-    fn path(directory: PathBuf) -> Result<PathBuf, LogsError> {
+    fn path(directory: &Path) -> PathBuf {
         let name = Self::generate_file_name();
-        let file_path = directory.join(name);
-        Ok(file_path)
+        directory.join(name)
     }
 
     fn generate_file_name() -> String {

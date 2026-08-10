@@ -40,8 +40,7 @@ impl Config {
                 return Err(error);
             },
         };
-        let config: Config =
-            toml::from_str(&text).map_err(ConfigError::Deserialization)?;
+        let config = toml::from_str(&text).map_err(ConfigError::Deserialization)?;
         Ok(config)
     }
 
