@@ -62,7 +62,8 @@ impl Database {
             true => {
                 log::info!("Core database not exists.");
                 admin_pool
-                    .execute(format!("CREATE DATABASE {database_name};").as_str())
+                    // Make sure to validate database_name thoroughly to avoid SQL injection
+                    .execute(sqlx::AssertSqlSafe(format!("CREATE DATABASE {database_name};")))
                     .await
                     .map_err(DbError::FailedCreateCoreDatabase)?;
                 log::info!("Core database \"{database_name}\" successfully created!");
