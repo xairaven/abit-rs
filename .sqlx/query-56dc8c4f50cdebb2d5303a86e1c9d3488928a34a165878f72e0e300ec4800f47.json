@@ -1,0 +1,74 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, name, parent_id, short_name, english_name, is_from_crimea,\n                   registration_year, category_id, ownership_form_id, region_id FROM institution\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "parent_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "short_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "english_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_from_crimea",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "registration_year",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "category_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "ownership_form_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 9,
+        "name": "region_id",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "56dc8c4f50cdebb2d5303a86e1c9d3488928a34a165878f72e0e300ec4800f47"
+}

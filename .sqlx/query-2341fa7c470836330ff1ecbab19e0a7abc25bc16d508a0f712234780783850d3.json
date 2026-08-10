@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO application (number_in_list, status_id, grade, priority_code, offer_id, user_id)\n                VALUES ($1, $2, $3, $4, $5, $6)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int2",
+        "Numeric",
+        "Int2",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2341fa7c470836330ff1ecbab19e0a7abc25bc16d508a0f712234780783850d3"
+}

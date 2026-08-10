@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT number_in_list, status_id, grade, priority_code, offer_id, user_id\n            FROM application\n            WHERE user_id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "number_in_list",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "status_id",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 2,
+        "name": "grade",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 3,
+        "name": "priority_code",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "offer_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "user_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "bfe1b9c491d3e5fdfe616814a754bbdce9df59da1b48fda7b429d8935685f4e4"
+}

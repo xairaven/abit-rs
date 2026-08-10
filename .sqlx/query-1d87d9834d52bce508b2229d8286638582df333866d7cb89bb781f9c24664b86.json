@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT university_id, offer_id FROM offers_institutions\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "university_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "offer_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "1d87d9834d52bce508b2229d8286638582df333866d7cb89bb781f9c24664b86"
+}
