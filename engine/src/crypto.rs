@@ -2,7 +2,7 @@ use aes::Aes256;
 use base64::Engine;
 use base64::engine::general_purpose;
 use block_padding::Pkcs7;
-use cbc::cipher::{BlockDecryptMut, KeyIvInit};
+use cbc::cipher::KeyIvInit;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
@@ -13,10 +13,10 @@ type Aes256CbcDec = cbc::Decryptor<Aes256>;
 pub fn decrypt(fio: String, number: i32, prsid: i32) -> Result<String, CryptoError> {
     let multiply_key = multiply(number, prsid);
 
-    let k = format!("{:x}", Sha256::digest(multiply_key));
+    let k = hex::encode(Sha256::digest(multiply_key));
     let k = &k[..k.len().min(32)];
 
-    let i = format!("{:x}", Sha256::digest(CUSTOM_KEY));
+    let i = hex::encode(Sha256::digest(CUSTOM_KEY));
 
     let e = general_purpose::STANDARD
         .decode(fio)
