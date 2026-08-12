@@ -1,102 +1,87 @@
-use crate::InitSettings;
+use crate::EngineConfig;
+use sqlx::migrate::MigrateDatabase;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{Executor, PgPool};
+use sqlx::{PgPool, Postgres};
 use thiserror::Error;
-use url::Url;
 
 pub struct Database {
     pub pool: PgPool,
 }
 
 impl Database {
-    pub async fn init(settings: &InitSettings) -> Result<Self, DbError> {
-        let database_url = Self::ensure_db_exists(settings).await?;
+    pub async fn init(config: &EngineConfig) -> Result<Self, DbError> {
+        let url = &config.database_url;
+
+        let is_db_exists_at_initialization = Postgres::database_exists(url)
+            .await
+            .map_err(DbError::IsPresentCheck)?;
+
+        if is_db_exists_at_initialization {
+            log::info!("Engine database exists.");
+        } else {
+            Self::create_database(url).await?;
+        }
 
         let pool = PgPoolOptions::new()
             .max_connections(5)
-            .connect(database_url.as_str())
+            .connect(&config.database_url)
             .await
-            .map_err(DbError::FailedConnectToDatabase)?;
+            .map_err(DbError::Connection)?;
 
         log::info!("Database connection established.");
 
-        sqlx::migrate!().run(&pool).await?;
-
-        log::info!("Database migration finished.");
+        let is_migration_needed = Self::is_migration_needed(&pool).await?;
+        if is_migration_needed {
+            log::info!("There are no tables. Need to do migration...");
+            sqlx::migrate!().run(&pool).await?;
+            log::info!("Migration done successfully.");
+        }
 
         Ok(Self { pool })
     }
 
-    async fn ensure_db_exists(settings: &InitSettings) -> Result<Url, DbError> {
-        let database_url =
-            Url::parse(&settings.database_url).map_err(DbError::FailedParseDbUrl)?;
-
-        let database_name = database_url
-            .path()
-            .split('/')
-            .next_back()
-            .ok_or(DbError::DatabaseNameNotFound)?
-            .trim();
-
-        if database_name.is_empty() {
-            return Err(DbError::DatabaseNameIsEmpty);
-        }
-
-        // Connection to admin DB
-        let mut admin_url = database_url.clone();
-        admin_url.set_path("/postgres");
-        let admin_pool = PgPool::connect(admin_url.as_str())
+    async fn create_database(url: &str) -> Result<(), DbError> {
+        log::info!("Engine database not exists.");
+        Postgres::create_database(url)
             .await
-            .map_err(DbError::FailedConnectToAdmin)?;
+            .map_err(DbError::CoreCreation)?;
+        log::info!("Engine database successfully created.");
 
-        // Is needed database exist?
-        let exists: Option<i32> =
-            sqlx::query_scalar("SELECT 1 FROM pg_database WHERE datname = $1")
-                .bind(database_name)
-                .fetch_optional(&admin_pool)
-                .await
-                .map_err(DbError::FailedRunQuery)?;
+        Ok(())
+    }
 
-        // Creating (or not) core DB
-        if exists.is_none() {
-            log::info!("Core database not exists.");
-            admin_pool
-                             // Make sure to validate database_name thoroughly to avoid SQL injection
-                                 .execute(sqlx::AssertSqlSafe(format!("CREATE DATABASE {database_name};")))
-                             .await
-                             .map_err(DbError::FailedCreateCoreDatabase)?;
-            log::info!("Core database \"{database_name}\" successfully created!");
-        } else {
-            log::info!("Core database \"{database_name}\" exists!");
-        }
+    async fn is_migration_needed(pool: &PgPool) -> Result<bool, DbError> {
+        // Check if the public schema contains any user-defined base tables
+        let has_tables: bool = sqlx::query_scalar(
+            "SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+            AND table_type = 'BASE TABLE'
+        )",
+        )
+        .fetch_one(pool)
+        .await
+        .map_err(DbError::TableAmountCheck)?;
 
-        Ok(database_url)
+        Ok(has_tables)
     }
 }
 
 #[derive(Debug, Error)]
 pub enum DbError {
-    #[error("Database name not found in corresponding URL.")]
-    DatabaseNameNotFound,
+    #[error("Failed to connect to the engine database. {0}")]
+    Connection(sqlx::Error),
 
-    #[error("Database name is empty.")]
-    DatabaseNameIsEmpty,
+    #[error("Failed to create engine database. {0}")]
+    CoreCreation(sqlx::Error),
 
-    #[error("Failed to parse database URL. {0}")]
-    FailedParseDbUrl(url::ParseError),
-
-    #[error("Failed to connect to admin database. {0}")]
-    FailedConnectToAdmin(sqlx::Error),
-
-    #[error("Failed to connect to the core database. {0}")]
-    FailedConnectToDatabase(sqlx::Error),
+    #[error("Failed to check is database exists or not. {0}")]
+    IsPresentCheck(sqlx::Error),
 
     #[error("Failed to run database migrations. {0}")]
-    FailedRunMigration(#[from] sqlx::migrate::MigrateError),
+    Migration(#[from] sqlx::migrate::MigrateError),
 
-    #[error("Query failed. {0}")]
-    FailedRunQuery(sqlx::Error),
-
-    #[error("Failed to create core database. {0}")]
-    FailedCreateCoreDatabase(sqlx::Error),
+    #[error("Failed to execute query that checks amount of tables. {0}")]
+    TableAmountCheck(sqlx::Error),
 }
