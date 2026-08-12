@@ -20,6 +20,7 @@ expect_used = "deny"
 inconsistent_struct_constructor = "allow"
 indexing_slicing = "deny"
 missing_errors_doc = "allow"
+must_use_candidate = "allow"
 panic = "deny"
 unwrap_used = "deny"
 
