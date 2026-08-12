@@ -1,5 +1,5 @@
 use crate::database::Database;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::repository::Repository;
 use crate::repository::degree::DegreeRepository;
 use crate::repository::institution_category::InstitutionCategoryRepository;

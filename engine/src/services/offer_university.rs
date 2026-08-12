@@ -1,6 +1,6 @@
 use crate::api;
 use crate::database::Database;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::offers_university::OffersUniversity;
 use crate::repository::Repository;
 use crate::repository::offers_university::OfferUniversityRepository;

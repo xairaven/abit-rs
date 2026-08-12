@@ -1,6 +1,6 @@
 use crate::api;
 use crate::database::Database;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::applicant::Applicant;
 use crate::model::application::Application;
 use crate::model::offer::Offer;

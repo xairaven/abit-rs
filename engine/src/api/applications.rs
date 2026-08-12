@@ -1,6 +1,6 @@
 use crate::api::{ApiError, ApiFetcherForm, ErrorResponse, INTERVAL_FOR_REQUESTS};
 use crate::dto::application::ApplyRequestDtoMap;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::applicant::Applicants;
 use crate::model::application::Application;
 use crate::model::offer::Offer;

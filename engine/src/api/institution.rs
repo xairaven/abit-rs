@@ -1,6 +1,6 @@
 use crate::api::{ApiError, ApiFetcherUrl, ExportFormat};
 use crate::dto::institution::InstitutionDto;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::institution::Institution;
 use crate::{api, request};
 use url::Url;

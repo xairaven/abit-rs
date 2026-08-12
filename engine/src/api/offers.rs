@@ -1,5 +1,5 @@
 use crate::api::{ApiError, ErrorResponse, INTERVAL_FOR_REQUESTS};
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::ModelError;
 use crate::model::degree::Degree;
 use crate::model::offer::Offer;

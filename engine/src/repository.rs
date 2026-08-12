@@ -1,5 +1,5 @@
 use crate::database::Database;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use thiserror::Error;
 
 pub type RepositoryResult<T> = Result<T, CoreError>;

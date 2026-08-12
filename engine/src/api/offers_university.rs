@@ -2,7 +2,7 @@ use crate::api::{
     ApiError, ApiFetcherForm, ApiFetcherUrl, ErrorResponse, INTERVAL_FOR_REQUESTS,
 };
 use crate::dto::offers_university::OffersUniversityMapDto;
-use crate::error::CoreError;
+use crate::errors::CoreError;
 use crate::model::degree::Degree;
 use crate::model::offers_university::OffersUniversity;
 use crate::model::{ModelError, speciality};
