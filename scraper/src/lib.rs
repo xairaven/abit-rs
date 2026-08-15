@@ -1,10 +1,28 @@
 // Main Source: https://zakon.rada.gov.ua/laws/show/z0312-25#Text
 
-pub use config::EngineConfig;
-pub use scraper::Scraper;
+pub use crate::errors::ScraperError;
 
-mod config;
+use crate::database::Database;
+use sqlx::PgPool;
+
+#[derive(Debug)]
+pub struct Scraper {
+    database: Database,
+}
+
+impl Scraper {
+    pub fn new(pool: &PgPool) -> Self {
+        Self {
+            database: Database::new(pool.clone()),
+        }
+    }
+
+    pub async fn process(&self) -> Result<(), ScraperError> {
+        Database::configure(&self.database).await?;
+
+        Ok(())
+    }
+}
+
 mod database;
-// TODO: W.I.P
 mod errors;
-mod scraper;

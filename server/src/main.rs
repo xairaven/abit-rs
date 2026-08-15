@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::database::Database;
 use crate::logs::Logger;
 use crate::settings::RuntimeSettings;
 
@@ -25,10 +26,20 @@ async fn main() -> () {
     log::info!("Runtime settings: {runtime_settings:?}");
     log::info!("Logger successfully initialized.");
 
+    let db = Database::init(&runtime_settings)
+        .await
+        .unwrap_or_else(|error| {
+            eprintln!("Error occurred. {error}");
+            std::process::exit(1);
+        });
+
+    log::info!("Database successfully initialized.");
+
     log::info!("Starting process...");
 }
 
 mod config;
+mod database;
 mod errors;
 mod logs;
 mod settings;
