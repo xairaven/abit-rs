@@ -15,3 +15,6 @@ repository = "https://github.com/xairaven/abit-rs"
 
 [lints]
 workspace = true
+
+[dependencies]
+num_enum = "0.7.6"
