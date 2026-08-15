@@ -16,7 +16,7 @@ of last year's fully-working implementation — **deliberately not a workspace m
 exists purely to consult and port logic from. The workspace (`Cargo.toml` members) is now
 `["server", "scraper", "model"]`:
 - `scraper` (renamed from `engine`, itself renamed from `edbo_core`) — data acquisition +
-  persistence. Currently a blank skeleton: `config.rs`, `database.rs`, `errors.rs`,
+  persistence. Currently a blank skeleton: `config.rs`, `schemas`, `errors.rs`,
   `scraper.rs`, `lib.rs` only. Internal type names (`EngineConfig`, `EngineError`) still
   reflect the pre-rename name — cosmetic, rename to `ScraperConfig`/`ScraperError`
   whenever convenient, not urgent.

@@ -21,7 +21,7 @@ Root `Cargo.toml` members: `["server", "scraper", "model"]`. A fourth crate, `pl
 algorithm), is planned but not yet created.
 
 - **`scraper`** (renamed from `edbo_core`/`engine`): data acquisition + persistence against EDBO. Currently a
-  genuinely blank skeleton — `scraper/src/` has only `config.rs`, `database.rs`, `errors.rs`, `scraper.rs`,
+  genuinely blank skeleton — `scraper/src/` has only `config.rs`, `schemas`, `errors.rs`, `scraper.rs`,
   `lib.rs`. The internal type names (`EngineConfig`, `EngineError`) still reflect the pre-rename crate name and
   should eventually become `ScraperConfig`/`ScraperError` for consistency — not urgent, just a known leftover.
 - **`model`**: intended to hold shared domain types (lookup enums, `Institution`/`Offer`/`Application`/
