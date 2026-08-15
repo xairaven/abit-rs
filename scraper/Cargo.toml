@@ -1,5 +1,5 @@
 [package]
-name = "engine"
+name = "scraper"
 version = "0.0.1"
 authors = ["Oleksandr Kovalov <oleksandr.kovalov.work@gmail.com>"]
 
