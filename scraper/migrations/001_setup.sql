@@ -1,20 +1,23 @@
-CREATE TABLE IF NOT EXISTS institution_category (
+-- COMMON
+CREATE SCHEMA common;
+
+CREATE TABLE IF NOT EXISTS common.institution_category (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL,
     code INT2
 );
 
-CREATE TABLE IF NOT EXISTS ownership_form (
+CREATE TABLE IF NOT EXISTS common.ownership_form (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS region (
+CREATE TABLE IF NOT EXISTS common.region (
     id INT2 PRIMARY KEY,
     name VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS institution (
+CREATE TABLE IF NOT EXISTS common.institution (
     id INTEGER PRIMARY KEY,
     name VARCHAR NOT NULL,
     parent_id INTEGER,
@@ -26,45 +29,45 @@ CREATE TABLE IF NOT EXISTS institution (
     ownership_form_id INT2 NOT NULL,
     region_id INT2 NOT NULL,
 
-    CONSTRAINT fk_institution_category FOREIGN KEY (category_id) REFERENCES institution_category(id),
-    CONSTRAINT fk_institution_ownership FOREIGN KEY (ownership_form_id) REFERENCES ownership_form(id),
-    CONSTRAINT fk_institution_region FOREIGN KEY (region_id) REFERENCES region(id)
+    CONSTRAINT fk_institution_category FOREIGN KEY (category_id) REFERENCES common.institution_category(id),
+    CONSTRAINT fk_institution_ownership FOREIGN KEY (ownership_form_id) REFERENCES common.ownership_form(id),
+    CONSTRAINT fk_institution_region FOREIGN KEY (region_id) REFERENCES common.region(id)
 );
 
-CREATE TABLE IF NOT EXISTS application_status (
+CREATE TABLE IF NOT EXISTS common.application_status (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS study_form (
+CREATE TABLE IF NOT EXISTS common.study_form (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS knowledge_field (
+CREATE TABLE IF NOT EXISTS common.knowledge_field (
     code CHAR PRIMARY KEY,
     name VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS speciality (
+CREATE TABLE IF NOT EXISTS common.speciality (
     code VARCHAR PRIMARY KEY,
     name VARCHAR NOT NULL,
     knowledge_field CHAR NOT NULL,
 
-    CONSTRAINT fk_speciality_field FOREIGN KEY (knowledge_field) REFERENCES knowledge_field(code)
+    CONSTRAINT fk_speciality_field FOREIGN KEY (knowledge_field) REFERENCES common.knowledge_field(code)
 );
 
-CREATE TABLE IF NOT EXISTS degree (
+CREATE TABLE IF NOT EXISTS common.degree (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS offer_type (
+CREATE TABLE IF NOT EXISTS common.offer_type (
     id INT2 PRIMARY KEY,
     description VARCHAR NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS offer (
+CREATE TABLE IF NOT EXISTS common.offer (
     id INTEGER PRIMARY KEY,
     title VARCHAR NOT NULL,
     degree_id INT2 NOT NULL,
@@ -77,27 +80,31 @@ CREATE TABLE IF NOT EXISTS offer (
     license_volume INTEGER NOT NULL,
     budgetary_places INTEGER NOT NULL,
 
-    CONSTRAINT fk_offer_type FOREIGN KEY (type_id) REFERENCES offer_type(id),
-    CONSTRAINT fk_offer_degree FOREIGN KEY (degree_id) REFERENCES degree(id),
-    CONSTRAINT fk_offer_speciality FOREIGN KEY (speciality_code) REFERENCES speciality(code),
-    CONSTRAINT fk_offer_study_form FOREIGN KEY (study_form_id) REFERENCES study_form(id)
+    CONSTRAINT fk_offer_type FOREIGN KEY (type_id) REFERENCES common.offer_type(id),
+    CONSTRAINT fk_offer_degree FOREIGN KEY (degree_id) REFERENCES common.degree(id),
+    CONSTRAINT fk_offer_speciality FOREIGN KEY (speciality_code) REFERENCES common.speciality(code),
+    CONSTRAINT fk_offer_study_form FOREIGN KEY (study_form_id) REFERENCES common.study_form(id)
 );
 
-CREATE TABLE IF NOT EXISTS offers_institutions (
+CREATE TABLE IF NOT EXISTS common.offers_institutions (
     university_id INTEGER NOT NULL,
     offer_id INTEGER NOT NULL,
 
     PRIMARY KEY (university_id, offer_id),
-    CONSTRAINT fk_institution_many FOREIGN KEY (university_id) REFERENCES institution(id)
+    CONSTRAINT fk_institution_many FOREIGN KEY (university_id) REFERENCES common.institution(id),
+    CONSTRAINT fk_offer_many FOREIGN KEY (offer_id) REFERENCES common.offer(id)
 );
 
-CREATE TABLE IF NOT EXISTS applicant (
+-- SCRAPED
+CREATE SCHEMA scraped;
+
+CREATE TABLE IF NOT EXISTS scraped.applicant (
     id INTEGER PRIMARY KEY,
     name VARCHAR NOT NULL,
     grade_components JSONB NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS application (
+CREATE TABLE IF NOT EXISTS scraped.application (
     number_in_list INTEGER NOT NULL,
     status_id INT2 NOT NULL,
     grade DECIMAL (10, 3) NOT NULL,
@@ -107,7 +114,7 @@ CREATE TABLE IF NOT EXISTS application (
     user_id INTEGER NOT NULL,
 
     PRIMARY KEY (offer_id, number_in_list),
-    CONSTRAINT fk_application_status FOREIGN KEY (status_id) REFERENCES application_status(id),
-    CONSTRAINT fk_application_offer FOREIGN KEY (offer_id) REFERENCES offer(id),
-    CONSTRAINT fk_application_user FOREIGN KEY (user_id) REFERENCES applicant(id)
+    CONSTRAINT fk_application_status FOREIGN KEY (status_id) REFERENCES common.application_status(id),
+    CONSTRAINT fk_application_offer FOREIGN KEY (offer_id) REFERENCES common.offer(id),
+    CONSTRAINT fk_application_user FOREIGN KEY (user_id) REFERENCES scraped.applicant(id)
 );
