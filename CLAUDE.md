@@ -6,35 +6,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A CLI tool being built to calculate who gets a state-funded ("budgetary") scholarship place for master's
 programs in Ukraine's 2026 admissions cycle. It scrapes institutions, offers, applications and applicants from
-EDBO's public system (`vstup.edbo.gov.ua` / `registry.edbo.gov.ua`), decrypts the obfuscated applicant names, and
-persists everything to Postgres. There is no placement/allocation algorithm here yet — parsing and normalization
-only; that's a known future phase. Solo hobby project (see CONTRIBUTING.md), favor clarity and minimal
-dependencies over cleverness.
+EDBO's public system (`vstup.edbo.gov.ua` / `registry.edbo.gov.ua`), decrypts the obfuscated applicant names,
+persists everything to Postgres, and — once the algorithm is built — computes and serves who actually gets a
+budgetary place. Solo hobby project (see CONTRIBUTING.md), favor clarity and minimal dependencies over
+cleverness.
 
 **Currently mid-rewrite.** See `REFACTOR_PLAN.md` at the repo root for the live plan, current status, and the
-reasoning behind it — check it before assuming any given module is wired up or planning further changes to
-`engine`. The rest of this file describes the stable parts (`server`) and the target architecture; the
-"Workspace layout" section below explains exactly what's live vs. orphaned in `engine` right now.
+reasoning behind every architectural decision below — check it before assuming any given crate/module is wired
+up or planning further changes.
 
-## Workspace layout (important gotcha)
+## Workspace layout
 
-The root `Cargo.toml` workspace has `members = ["server", "engine"]` — both are real workspace members, so plain
-`cargo build`/`cargo test`/`cargo clippy` at the repo root cover both crates. (`engine` was previously a separate
-crate named `edbo_core`, developed outside the workspace; it has since been renamed and added as a member.)
+Root `Cargo.toml` members: `["server", "scraper", "model"]`. A fourth crate, `placement` (the allocation
+algorithm), is planned but not yet created.
 
-**The actual gotcha now is inside `engine` itself.** It's mid-rewrite: `engine/src/lib.rs` currently only
-declares `mod config; mod database; mod errors; mod scraper;` — a small new skeleton (DB init, a config struct, an
-error enum, a `Scraper` orchestrator whose `process()` is mostly a commented-out sketch). Every other `.rs` file
-under `engine/src/` (`api/`, `context.rs`, `crypto.rs`, `dto/`, `model/`, `repository/`, `request.rs`,
-`services/`) is the previous, fully-working implementation, still present on disk but **not** declared via `mod`
-anywhere reachable from `lib.rs` — so it doesn't affect compilation, but it also isn't doing anything. Don't
-assume any of those modules run just because the files exist; check `lib.rs`'s module list first, and see
-`REFACTOR_PLAN.md` for the plan to re-wire them.
+- **`scraper`** (renamed from `edbo_core`/`engine`): data acquisition + persistence against EDBO. Currently a
+  genuinely blank skeleton — `scraper/src/` has only `config.rs`, `database.rs`, `errors.rs`, `scraper.rs`,
+  `lib.rs`. The internal type names (`EngineConfig`, `EngineError`) still reflect the pre-rename crate name and
+  should eventually become `ScraperConfig`/`ScraperError` for consistency — not urgent, just a known leftover.
+- **`model`**: intended to hold shared domain types (lookup enums, `Institution`/`Offer`/`Application`/
+  `Applicant`, and eventually `PlacementResult`) so a future `placement` crate can depend on just this — not on
+  `scraper`'s `reqwest`/`sqlx`/crypto dependencies. Currently an empty scaffold (`model/src/lib.rs` has no
+  content, `Cargo.toml` has no dependencies yet).
+- **`edbo_core`** at the repo root: a complete, standalone reference copy of last year's fully-working
+  implementation. **Deliberately not a workspace member** — don't add it, don't try to build it. It exists
+  purely to consult and port logic from while designing `scraper`/`model` fresh. See `REFACTOR_PLAN.md` for the
+  full inventory of what's reusable as-is vs. needs rework.
+- **`server`**: the CLI entry point. Currently only boots config/settings/logging (`server/src/main.rs`) — does
+  not yet depend on `scraper` or `model`.
 
 ```bash
-cargo build                                   # covers both server and engine
-cargo test --package engine                   # currently trivial — most code isn't wired in yet
-cargo test --package engine crypto::tests     # only works once `crypto` is `mod`-declared in lib.rs
+cargo build                                   # covers server + scraper + model
+cargo test --package scraper
 cargo clippy --workspace --all-targets
 
 cargo build --package server --release        # what the Dockerfile runs
@@ -44,83 +47,72 @@ cargo run --package server
 cargo fmt --all
 ```
 
-`server` currently only loads config, validates runtime settings, and sets up logging (`server/src/main.rs`) —
-it does not yet depend on or call into `engine`. `REFACTOR_PLAN.md` covers the concrete wiring (add `engine` as a
-path dependency, construct `EngineConfig` from `RuntimeSettings.database_url`, call `Scraper::new(...).process()`).
-
 ## Toolchain & lints
 
 - Pinned via `rust-toolchain.toml`: Rust `1.97.1`, edition 2024, with `rustfmt`/`clippy` components.
 - Workspace-wide clippy/rust lints (`Cargo.toml` `[workspace.lints]`) **deny** `unwrap_used`, `expect_used`,
   `panic`, `indexing_slicing`, and `unsafe_code`, and **warn** on `clippy::pedantic` + `clippy::nursery` (with a
   few pedantic lints explicitly allowed back: `inconsistent_struct_constructor`, `missing_errors_doc`,
-  `must_use_candidate`). Both crates opt in via `[lints] workspace = true`. This means:
+  `must_use_candidate`). All crates opt in via `[lints] workspace = true`. This means:
   - No `.unwrap()`/`.expect()`/`panic!()` — use `Result`/`thiserror` error enums and `?`, or `.ok_or(...)`.
-  - No direct slice/array indexing (`v[i]`) — use `.get(i)`/`.get_mut(i)` with explicit error handling (see
-    `engine/src/crypto.rs` for the pattern used with fixed-size key/IV buffers).
-  - Pedantic lints like `cast_possible_truncation` and `uninlined_format_args` are real signal here, not noise —
-    the DB-schema/model type-width mismatches tracked in `REFACTOR_PLAN.md` were partly surfaced this way.
+  - No direct slice/array indexing (`v[i]`) — use `.get(i)`/`.get_mut(i)` with explicit error handling.
+  - Pedantic lints like `cast_possible_truncation` are real signal here, not noise — see the schema-drift
+    fixes tracked in `REFACTOR_PLAN.md`.
 - CONTRIBUTING.md: only stable Rust features, one logical change per PR/commit, format with rustfmt.
 
-## `engine` architecture (target state — see `REFACTOR_PLAN.md` for current re-wiring progress)
+## Architecture (see `REFACTOR_PLAN.md` for full rationale)
 
-Entry point is `Scraper::process()` (`engine/src/scraper.rs`), which — once fully re-wired — runs a fixed
-pipeline against a `Database`: enums → institutions → offers-with-institutions → offers →
-applications/applicants, collecting everything into a `Context` (`engine/src/context.rs`).
+**No `Service`/`Repository` traits.** `edbo_core`'s old pattern (a `Service` trait wrapping a `Repository`
+trait, one impl of each per entity, plus an `EnumService` god-struct seeding 9 lookup tables via 9 copy-pasted
+blocks) was never used polymorphically anywhere — pure ceremony with no payoff. The replacement:
+- **Lookup tables** (`degree`, `region`, `study_form`, etc.): one `macro_rules!` template generating a plain,
+  fully `sqlx::query!`-compile-time-checked seed function per table — no trait, no struct.
+- **Real entities** (`institution`, `offer`, `application`, ...): one plain module per entity, `pub`
+  orchestration function + private SQL-access functions in the same file — layering by visibility, not by
+  trait/type boundary.
 
-**Service → Repository pattern**, one pair per entity (`services/*.rs` + `repository/*.rs`, e.g. `offer`,
-`institution`, `applications`, `offer_university`, plus lookup-table services/repos for `degree`, `region`,
-`study_form`, `offer_type`, `ownership_form`, `institution_category`, `speciality`, `knowledge_field`, `status`).
-Every service follows the same idempotent-import shape (see `services/offer.rs`):
+**`dto` vs `model` — keep this split, it earns its keep.** Every DTO type has exactly two consumers (the
+fetcher that deserializes it, the converter that turns it into a domain type) and the shapes genuinely diverge
+(EDBO's raw wire format vs. validated domain data) — unlike `Service`/`Repository`, this isn't cargo-culted.
 
-1. Ask its `Repository::is_empty()`.
-2. If empty: fetch from the EDBO HTTP API (`api/*.rs`), insert each record via the repository, return the fetched list.
-3. If not empty: read straight back from Postgres via `find_all()` and skip the network entirely.
+**Crate topology (target, not fully built yet):** `model` (plain domain types, minimal deps: serde, thiserror,
+strum, num_enum, bigdecimal — no reqwest/sqlx/crypto) ← `scraper` (fetches from EDBO, persists) and `placement`
+(pure allocation algorithm, reads `model` types) both depend on `model`; `server` orchestrates `scraper` +
+`placement`. One orphan-rule consequence of this split: `impl TryFrom<InstitutionDto> for Institution` can't
+live as a trait impl once `Institution` moves to `model` and `InstitutionDto` stays in `scraper` — it becomes a
+plain free function in `scraper` instead (e.g. `fn institution_from_dto(dto) -> Result<model::Institution, _>`).
 
-This means the DB doubles as a cache — re-running the pipeline against a populated database does no HTTP calls.
-To force a re-fetch, truncate the relevant tables.
+**Database: one Postgres database, three schemas** (not three databases — Postgres can't join across
+databases without extensions, but schemas join/FK freely within one DB): `common` (reference/lookup tables,
+written by `scraper`), `scraped` (EDBO input data — offer/application/applicant, written by `scraper`),
+`placement` (algorithm output, written by the future `placement` crate, read by `server` to serve to users).
+Schema-level separation also gives a real permission boundary later — a role serving results publicly can be
+granted access to `placement`+`common` only, never `scraped`'s raw PII.
 
-Other pieces:
-- `api.rs` / `api/*.rs`: HTTP client layer against EDBO endpoints. Requests are throttled by
-  `INTERVAL_FOR_REQUESTS` (2s) and detect EDBO's own Ukrainian-language rate-limit error message
-  (`ErrorResponse::handle_request_limit`), sleeping 60s when hit. **Not yet re-validated against the 2026 site** —
-  EDBO appears to have been rebuilt on Next.js since these were written (see `REFACTOR_PLAN.md`'s de-risking
-  research); the old registry JSON endpoint currently 404s. A live recon check found no Cloudflare
-  challenge on the read paths tested, so the likely issue is moved/restructured endpoints rather than
-  bot-protection, but this hasn't been confirmed end-to-end yet.
-- `crypto.rs`: EDBO obfuscates applicant names in its public listings; this reimplements the site's
-  AES-256-CBC (key/IV derived from an app number, `prsid`, and a hardcoded salt) decryption to recover them.
-  Tests here are golden-value regression tests against real decrypted EDBO records — keep them passing. This
-  formula has been independently cross-validated against a similar third-party project's reverse-engineering
-  (see `REFACTOR_PLAN.md`) — high confidence it's correct and needs no changes.
-- `database.rs`: `Database::init` uses `sqlx::migrate::MigrateDatabase` (`Postgres::database_exists`/
-  `create_database`) to create the target database if needed, without requiring a separate admin-DB
-  connection, then opens the real pool and runs embedded `sqlx::migrate!()` migrations (`engine/migrations/`).
-- `model/*.rs`: DB-shaped structs, matching `engine/migrations/001_setup.sql` / `dbml/core_schema.dbml` (keep
-  these three in sync when changing schema — `REFACTOR_PLAN.md` tracks known drift between them as of the
-  current rewrite). `dto/*.rs` are the EDBO API response shapes — distinct from `model/*.rs`, converted on the
-  way in.
-- Errors are per-module enums (`ApiError`, `DbError`, `RepositoryError`, `CryptoError`, `ModelError`) composed
-  via `thiserror`'s `#[from]` into the crate-level `EngineError` (`errors.rs`). `server` mirrors this with its
-  own `ServerError` composing `ConfigError`/`LogsError`/`RuntimeSettingsError`.
+## `engine`/EDBO data-source status (see `REFACTOR_PLAN.md` for full detail)
+
+**Confirmed empirically (not speculation):** EDBO's institution list moved from the old
+`registry.edbo.gov.ua/api/universities/?exp=json` (now 404s) to
+`registry.edbo.gov.ua/api/opendata/universities?rg=<region>&ut=<category>&exp=xlsx` — and the response is now a
+real `.xlsx` file download, not JSON. No Cloudflare challenge was encountered fetching it. This means
+institution-fetching needs an actual spreadsheet parser (`calamine` is the standard Rust crate) and a
+redesigned DTO, not just a URL change — a bigger change than initially assumed. Exact semantics of `rg`/`ut`
+(do they need to be looped over to get everything, or is there an "all" value) are still unconfirmed.
 
 **Hard rule:** never use `vstup.osvita.ua` (or any non-EDBO source) as a data source for this project, even as a
-fallback if EDBO scraping proves difficult. EDBO only — this is an explicit decision by the project owner, not a
-default to reconsider.
+fallback if EDBO scraping proves difficult. EDBO only — explicit project-owner decision, not a default to
+reconsider.
 
 ## `server` crate
 
 Boot sequence in `server/src/main.rs`: load `Config` from `config.toml` next to the running executable
-(`server/src/config.rs` — auto-creates a default template and returns an error on first run if missing, so the
-operator can fill it in) → validate into `RuntimeSettings` (`server/src/settings.rs`, requires non-empty
-`database_url`) → initialize the `fern`-based `Logger` (`server/src/logs.rs`, stdout or a directory of dated
-log files). The root `config.toml` in this repo is a dev sample (gitignored per `.gitignore`, tracked copy here
-is just a template) — real deployments mount their own via `docker-compose.prod.yaml`. `server` does not yet
-depend on `engine` — see `REFACTOR_PLAN.md` for the wiring plan.
+(`server/src/config.rs` — auto-creates a default template and returns an error on first run if missing) →
+validate into `RuntimeSettings` (`server/src/settings.rs`, requires non-empty `database_url`) → initialize the
+`fern`-based `Logger` (`server/src/logs.rs`). The root `config.toml` is a dev sample (gitignored). `server`
+does not yet depend on `scraper`/`model`/`placement` — see `REFACTOR_PLAN.md` for the wiring plan.
 
 ## Docker / local Postgres
 
 - `docker-compose.dev.yaml`: Postgres only, for local development (`docker compose -f docker-compose.dev.yaml up -d`).
 - `docker-compose.prod.yaml`: Postgres + the `server` app image, mounting `./config.toml` into the container.
-- `Dockerfile`: multi-stage build, only ever builds `--package server --release` (engine is a library, not
-  a binary target).
+- `Dockerfile`: multi-stage build, only ever builds `--package server --release`.
