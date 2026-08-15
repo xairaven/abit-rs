@@ -3,6 +3,8 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(i8)]
 pub enum Region {
+    Every = 0,
+
     KyivCity = 80,
     Vinnytsia = 5,
     Volyn = 7,
