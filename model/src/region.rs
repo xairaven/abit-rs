@@ -1,6 +1,5 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
-/// Documentation - [link](../../docs/Data.md#Regions).
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(i8)]
 pub enum Region {
