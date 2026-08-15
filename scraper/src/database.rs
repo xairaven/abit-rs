@@ -1,4 +1,4 @@
-use model::database::schemas;
+use model::schemas;
 use sqlx::PgPool;
 use thiserror::Error;
 
