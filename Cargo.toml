@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 
-members = ["server", "scraper"]
+members = ["server", "scraper", "model"]
 
 [profile.release]
 lto = true

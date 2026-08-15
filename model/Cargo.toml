@@ -1,0 +1,17 @@
+[package]
+name = "model"
+version = "0.0.1"
+authors = ["Oleksandr Kovalov <oleksandr.kovalov.work@gmail.com>"]
+
+edition = "2024"
+rust-version = "1.97.1"
+
+categories = ["simulation"]
+keywords = ["applicants", "education"]
+
+readme = "../README.md"
+license = "MIT"
+repository = "https://github.com/xairaven/abit-rs"
+
+[lints]
+workspace = true
