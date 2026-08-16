@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS common.region (
 );
 
 CREATE TABLE IF NOT EXISTS common.institution (
-    id INTEGER PRIMARY KEY,
+    id INT2 PRIMARY KEY,
     name VARCHAR NOT NULL,
-    parent_id INTEGER,
+    parent_id INT2,
     short_name VARCHAR,
     english_name VARCHAR,
     is_from_crimea BOOLEAN NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS common.offer (
 );
 
 CREATE TABLE IF NOT EXISTS common.offers_institutions (
-    university_id INTEGER NOT NULL,
+    university_id INT2 NOT NULL,
     offer_id INTEGER NOT NULL,
 
     PRIMARY KEY (university_id, offer_id),
