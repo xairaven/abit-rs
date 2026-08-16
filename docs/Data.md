@@ -24,9 +24,11 @@ Also, in 2025 there were 2 additional categories. I don't know if they are exist
 - Невідомо - **Unknown** (`Unknown`)
 
 Each category has its own numerical code. You can find current codes in [category.rs](../model/src/institution/category.rs).
+They were used in API 2025 version. Some values changed in 2026, but used now only for storing them in DB.
 
 
 ### Regions
 
 Each region has a numerical code. You can find current codes in [region.rs](../model/src/region.rs). 
 Got them from [EDBO Registry](https://registry.edbo.gov.ua/vishcha-osvita) - there is interactive map.
+They were used in API 2025 version. Some values changed in 2026, but used now only for storing them in DB.
