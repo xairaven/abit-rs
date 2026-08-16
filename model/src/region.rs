@@ -1,7 +1,7 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Debug, IntoPrimitive, TryFromPrimitive)]
-#[repr(i8)]
+#[repr(i16)]
 pub enum Region {
     Every = 0,
 
