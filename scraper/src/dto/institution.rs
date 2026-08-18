@@ -34,25 +34,13 @@ impl TryFrom<InstitutionDto> for Institution {
     type Error = DtoError;
 
     fn try_from(value: InstitutionDto) -> Result<Self, Self::Error> {
-        let short_name = if value.short_name.is_empty() {
-            None
-        } else {
-            Some(value.short_name)
-        };
+        let short_name = Some(value.short_name).filter(|s| !s.is_empty());
 
-        let english_name = if value.english_name.is_empty() {
-            None
-        } else {
-            Some(value.english_name)
-        };
+        let english_name = Some(value.english_name).filter(|s| !s.is_empty());
 
         let is_from_crimea = value.is_from_crimea.eq("Так");
 
-        let registration_date = if value.registration_date.is_empty() {
-            None
-        } else {
-            Some(value.registration_date)
-        };
+        let registration_date = Some(value.registration_date).filter(|s| !s.is_empty());
 
         let category = InstitutionCategory::from_str(&value.category)
             .map_err(Self::Error::InstitutionCategory)?;
