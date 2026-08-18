@@ -1,6 +1,6 @@
 # abit-rs: architecture and build plan
 
-_Status as of 2026-08-16. Living planning document — update it as steps complete or the
+_Status as of 2026-08-19. Living planning document — update it as steps complete or the
 approach changes; it's not a historical record. Code examples are illustrative shape, not
 verbatim code to paste — the user is writing the implementation by hand._
 
@@ -13,79 +13,205 @@ placement/allocation algorithm was never finished.
 
 **Current state:** `edbo_core/` at the repo root is a complete, standalone reference copy
 of last year's fully-working implementation — **deliberately not a workspace member**,
-exists purely to consult and port logic from. The workspace (`Cargo.toml` members) is now
+exists purely to consult and port logic from. The workspace (`Cargo.toml` members) is
 `["server", "scraper", "model"]`:
-- `scraper` (renamed from `engine`, itself renamed from `edbo_core`) — data acquisition +
-  persistence. Currently a blank skeleton: `config.rs`, `schemas`, `errors.rs`,
-  `scraper.rs`, `lib.rs` only. Internal type names (`EngineConfig`, `EngineError`) still
-  reflect the pre-rename name — cosmetic, rename to `ScraperConfig`/`ScraperError`
-  whenever convenient, not urgent.
-- `model` — scaffolded but empty (`lib.rs` has no content, `Cargo.toml` has no
-  dependencies yet). Will hold shared domain types once populated.
+- `scraper` (renamed `edbo_core` → `engine` → `scraper`) — **the `institution` entity is
+  fully implemented end-to-end** (fetch → DTO → model → persist/read-back), the first
+  complete vertical slice and the template for `offer`/`application`/`applicant`. Layout
+  is DDD/by-entity: `institution.rs` (module declarations only) + `institution/`:
+  `api.rs` (`InstitutionApi`, HTTP fetch), `dto.rs` (`InstitutionDto` +
+  `TryFrom<InstitutionDto> for Institution`), `service.rs` (`InstitutionService<'a>`,
+  fetch-or-cache orchestration), `errors.rs` (`InstitutionError`). `database.rs` owns
+  `Database::configure` (schema/table existence check + `sqlx::migrate!()`) and a
+  `pool()` accessor. `lib.rs`'s `Scraper::process()` calls `configure()` then
+  `InstitutionService::new(&self.database).get()`. Depends on `model`.
+- `model` — `Institution` (`institution.rs`), `InstitutionCategory`
+  (`institution/category.rs`), `OwnershipForm` (`institution/ownership.rs`), `Region`
+  (`region.rs`), `schemas.rs` (schema-name constants). All three lookup enums are
+  `#[repr(i16)]` + `Copy, Clone` + `strum::EnumString`/`Display` with Ukrainian
+  `#[strum(serialize = "...")]` labels matching EDBO's export text exactly. Deps:
+  `num_enum`, `strum`/`strum_macros`.
 - `placement` (the allocation algorithm) — **not created yet**, planned.
-- `server` — unchanged, doesn't depend on any of the above yet.
+- `server` — `database.rs` owns "ensure DB exists + open pool" (`Database::init`, no
+  admin-DB connection needed), `main.rs` builds the pool (correctly bound to `let db =
+  ...`) but **still doesn't construct `Scraper`/call `.process()`** — the next concrete
+  wiring step, unchanged from before.
 
-`docs/dbml/schema.dbml` (moved from the old root-level `dbml/core_schema.dbml`)
-documents the scraped-data + common/reference tables; a schema doc for the eventual
-`placement` tables doesn't exist yet.
+`cargo check`/`cargo clippy --all-targets` (workspace `pedantic`+`nursery` included) both
+pass with **zero warnings** on `scraper`+`model` as of this writing — verify this stays
+true as more entities are added, don't let it regress.
 
-### EDBO 2025→2026 obstacle — de-risking research
+`docs/dbml/schema.dbml` documents the `common`+`scraped` tables; a `placement`-schema dbml
+doc doesn't exist yet.
 
-**Cloudflare: confirmed not the obstacle**, at least for the paths tested. A live check
-against `vstup.edbo.gov.ua`/`registry.edbo.gov.ua` (`curl`, browser UA, no JS) found no
-challenge on 3 read paths, and a real browser network-tab capture of an actual "get all
-universities" click also sailed through with a clean 200 — no `cf-ray`, no challenge
-markup, even though Turnstile is referenced in the site's CSP (configured *somewhere*,
-just not triggering here).
+### EDBO 2025→2026 obstacles — two very different situations, confirmed empirically
 
-**Confirmed empirically: the institution-data endpoint moved and changed shape, not just
-URL.** Captured via real browser network tab clicking "get all universities" on
-`registry.edbo.gov.ua/vishcha-osvita`:
+**Institutions: solved AND implemented.** Old endpoint
+`registry.edbo.gov.ua/api/universities/?exp=json` now 404s (confirmed via `curl`). Real
+endpoint:
 ```
-GET https://registry.edbo.gov.ua/api/opendata/universities?rg=0&ut=1&exp=xlsx
-→ 308 (trailing-slash redirect) → 200 OK
-content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-content-disposition: attachment; filename="Заклад вищої освіти <date>.xlsx"
+GET https://registry.edbo.gov.ua/api/opendata/universities?rg=<region>&ut=<category>&exp=json
 ```
-Old code hit `registry.edbo.gov.ua/api/universities/?exp=json` (now 404s, confirmed via
-direct `curl`) — the path gained an `opendata` segment, and **the response is now a real
-`.xlsx` file, not JSON.** This is bigger than a URL fix: institution-fetching needs an
-actual spreadsheet parser (`calamine` is the standard Rust crate for reading `.xlsx`) and
-a DTO redesigned around spreadsheet columns, not JSON field names. Open questions to
-resolve by more browser exploration before implementing:
-- `ut` (category) and `rg` (region) — old code called the JSON version with both filters
-  omitted (`None`) to get *all* institutions unfiltered. The new endpoint was captured
-  with `ut=1&rg=0` — unconfirmed whether these are required, what values exist, or
-  whether getting *all* institutions now requires looping over every `ut`/`rg` value and
-  merging results. Check the UI's own filter controls on `vishcha-osvita` for the actual
-  value range, or try omitting each param.
-- Whether offers/applications moved to the same `/api/opendata/...` + xlsx-export pattern
-  — worth checking for an equivalent export button before assuming the old `/offer/{id}`
-  HTML-scraping / `/offer-requests/` POST-pagination approach still works as-is.
+**Resolved, no longer open questions:**
+- `exp=json` works on the new endpoint too (not just `.xlsx`) — confirmed by pulling a
+  real export and diffing its shape against `InstitutionDto`. No `calamine`/spreadsheet
+  parsing needed after all; plain `reqwest` + `serde_json`, same as any other JSON API.
+- `ut` is `InstitutionCategory`'s numeric discriminant, `rg` is `Region`'s — confirmed
+  because a `ut=1` export's category column matched exactly one `InstitutionCategory`
+  variant (`HigherEducation`) for every single row.
+- Getting *all* institutions doesn't need a loop: `scraper` intentionally hardcodes
+  `ut=1`+`rg=0` (`Region::Every`, fetches every region in one call) rather than looping
+  over all 8 `InstitutionCategory` values, because **master's programs are only offered
+  by category-1 institutions** — the other 7 categories (vocational, secondary, etc.) are
+  out of scope for this project, not an oversight.
+- No Cloudflare challenge, no encryption on this endpoint — confirmed both via `curl` and
+  via a real browser network-tab capture of the actual export button.
+
+Still open: whether offers/applications have an equivalent opendata+json export (worth
+checking before assuming the harder path below is the only option) — evidence so far
+(the `/offers` capture below) suggests no.
+
+**Offers (and presumably applications): a real, confirmed, much harder obstacle.**
+Captured live via browser network tab on `vstup.edbo.gov.ua/offers`:
+- **Cloudflare Turnstile is genuinely active** on this flow (auto-solved for a real
+  browser session, producing a `captcha-token` JWT cookie) — the first case in all this
+  research where Cloudflare is a plausible real blocker for a plain HTTP client, unlike
+  every GET path and the institutions endpoint, which sailed through clean.
+- **This is not a REST/JSON API — it's Next.js Server Actions.** POSTs go straight to the
+  page URL (`/offers`), `Content-Type`/`Accept: text/x-component`, with a `next-action:
+  <hash>` header identifying which server function to invoke. These hashes are
+  content-addressed to a specific frontend build and will change on redeploy — much more
+  fragile than a stable REST path.
+- **The payload is a real per-session hybrid encryption handshake**, confirmed by
+  capturing both directions:
+  1. Request 1 (`[]`, no args) → server returns its RSA public key + a session nonce.
+  2. Before request 2, the client generates its own ephemeral RSA keypair + a fresh AES
+     key: AES-GCM-encrypts the actual payload (`data`/`iv`/`tag`), RSA-encrypts that AES
+     key with the *server's* public key (`key`), and sends its own public key
+     (`clientPublicKey`) alongside — captured request 2 payload:
+     `["/vstup/speciality_offers/", {key, data, iv, tag, clientPublicKey, meta: "$undefined"}, {}, "captcha-token"]`.
+  3. The server decrypts the request the same way in reverse, then encrypts *its*
+     response with a fresh AES key wrapped using the *client's* public key from step 2 —
+     that's the `{key, data, iv, tag}` shape captured as response 2.
+  4. Only the browser tab holding the ephemeral private key it generated can decrypt that
+     response.
+  - **This is fundamentally different from the old system's obfuscation.** The old
+    `crypto.rs` scheme (salt derivable from `number`/`prsid`, a fixed constant) could be
+    statically reverse-engineered because the "secret" was really just a formula baked
+    into `functions.js`. This is a real per-session key exchange — there's no static
+    secret sitting in the JS bundle to extract.
+
+**Decision: drive a real headless browser, don't reimplement the crypto.** Let the actual
+EDBO JS do the Turnstile pass and the RSA/AES-GCM handshake — it ends up rendering the
+decrypted offers as plain HTML in the DOM. Scrape that, not the network traffic. This also
+sidesteps the `next-action` hash fragility entirely, since nothing calls those actions
+directly except EDBO's own bundle, whatever hash it currently has.
+
+**Recommended crate: `chromiumoxide`** (async, pure Rust, drives Chrome via CDP directly
+and can launch/manage the Chrome subprocess itself — no separate `chromedriver` binary to
+install and keep version-matched with the browser, unlike WebDriver-based alternatives
+like `thirtyfour`/`fantoccini`).
+
+Illustrative shape (selectors are placeholders — inspect the live page in DevTools for
+real ones; nothing here has been live-verified, no browser tool was available when this
+was researched):
+```rust
+use chromiumoxide::{Browser, BrowserConfig};
+
+async fn fetch_offers_html() -> Result<String, FetchError> {
+    let (browser, mut handler) = Browser::launch(
+        BrowserConfig::builder().with_head().build()?,  // headful while developing
+    ).await?;
+    let handler_task = tokio::spawn(async move { while handler.next().await.is_some() {} });
+
+    let page = browser.new_page("https://vstup.edbo.gov.ua/offers").await?;
+    page.wait_for_navigation().await?;
+
+    // Cloudflare needs a moment to auto-resolve — poll, don't fixed-sleep.
+    wait_for_selector(&page, "form.search", Duration::from_secs(15)).await?;
+
+    // Drive the real UI like a human would.
+    page.find_element("select[name='speciality']").await?.click().await?;
+    // ... pick the option, click search ...
+
+    wait_for_selector(&page, ".offers-results", Duration::from_secs(15)).await?;
+    let html = page.content().await?;
+
+    browser.close().await?;
+    handler_task.await?;
+    Ok(html)
+}
+```
+
+**Practical considerations, not just the happy path:**
+1. **Name collision**: crates.io's HTML-parsing crate is *also* called `scraper`. Usable
+   as a dependency inside this project's own `scraper` crate (no compile conflict — own
+   crate via `crate::`, dependency via its name), but `use scraper::Html;` inside a crate
+   called `scraper` reads oddly. Consider `tl`/`html5ever` directly, or accept the friction.
+2. **Reuse one browser/session for the whole run** — launching fresh per offer is slow and
+   re-triggers Cloudflare every time.
+3. **Docker impact is real**: current `Dockerfile` is `debian:bookworm-slim`. Headless
+   Chrome needs the actual browser binary + a pile of system libs (fonts, X11 libs even
+   headless) — a genuine image-size/build-complexity increase, not just a `Cargo.toml`
+   line.
+4. **Detecting "Cloudflare cleared"** needs an explicit poll (the `captcha-token` cookie,
+   or a DOM element only present once Turnstile resolves) with a timeout + retries —
+   "usually instant" isn't "always instant."
+5. **This is a second, genuinely different fetch strategy, not a generalization of the
+   first.** Institutions stay on plain `reqwest`+`serde_json` — no crypto, no browser.
+   Offers (and presumably applications) need the browser-driven path. Don't force both
+   into one shared abstraction just because they're both "fetching" — the mechanics are
+   completely different, same reasoning that already applies to `institution::api` vs.
+   whatever `offer::api`/`application::api` end up needing.
 
 Corroborating research from `abit-assistant`'s (https://github.com/OlexiyOdarchuk/abit-assistant)
-`brain/06 — EDBO Research.md` independently confirms the Next.js rewrite and that the old
-AJAX endpoints are "non-functional for current data." Two things from that research still
-apply:
-- **Crypto cross-validation:** abit-assistant independently reverse-engineered the same
-  AES-CBC salt formula `edbo_core/src/crypto.rs` already uses (`salt = "v" + (number ×
-  (7500 − prsid))`, key = SHA256(salt)[:32 hex], IV = SHA256("2025")[:16 hex]) via
-  Playwright capture of the archived `vstup2025/js/functions.js`. Combined with
-  `crypto.rs`'s own 3 passing golden-value tests, port it unchanged.
+`brain/06 — EDBO Research.md` independently confirms the Next.js rewrite. Two things from
+that research still apply:
+- **Crypto cross-validation (applicant-name decryption, unrelated to the offers handshake
+  above):** abit-assistant independently reverse-engineered the same AES-CBC salt formula
+  `edbo_core/src/crypto.rs` already uses (`salt = "v" + (number × (7500 − prsid))`, key =
+  SHA256(salt)[:32 hex], IV = SHA256("2025")[:16 hex]) via Playwright capture of the
+  archived `vstup2025/js/functions.js`. Combined with `crypto.rs`'s own 3 passing
+  golden-value tests, port it unchanged when applications-scraping is built.
 - **abit-assistant has not built or live-tested EDBO scraping for 2026 itself** — paused
-  pending their own campaign launch, and their battle-tested sources are
-  `vstup.osvita.ua`/`abit-poisk.org.ua`, which **this project is explicitly forbidden from
-  using** (hard rule: EDBO only, no fallback, ever). Only their methodology transfers: if
-  more endpoints turn out broken, a Playwright/headless-browser capture of real traffic
-  (their `tools/edbo-reverse/capture.py` + `analyze.py` pattern) is the recommended way to
-  find the new shape — same technique that just found the opendata/xlsx endpoint by hand.
+  pending their own campaign launch, battle-tested sources are `vstup.osvita.ua`/
+  `abit-poisk.org.ua`, which **this project is explicitly forbidden from using** (hard
+  rule: EDBO only, no fallback, ever). Only their methodology transfers — and the
+  Playwright/browser-capture technique is exactly what surfaced the opendata endpoint and
+  the offers encryption scheme above, done by hand this time.
+
+### Master's admission algorithm — confirmed research
+
+**No quota categories for master's** (unlike bachelor's — confirmed directly by the
+project owner; earlier research in this document mistakenly generalized from
+bachelor's-focused sources and has been corrected). What does apply, confirmed against
+MON's 2026 procedure (наказ №373, 26.02.2026) and several explainers:
+- **"Широкий конкурс" (wide competition):** ranking is per speciality nationally, not per
+  specific offer at one institution — has been since 2015. Already fully supported by the
+  schema: `offer.speciality_code` + `application.offer_id` let you group applications by
+  speciality across every institution's offers; no schema change needed, just correct
+  grouping in the algorithm.
+- **Core ranking**: sort by competitive score (`application.grade`) descending, then
+  priority (`application.priority_code`), then break remaining ties using individual grade
+  components (`applicant.grade_components` JSONB) — exactly why that column needs to stay
+  a structured breakdown, not a single number.
+- **Recursive adjustment**: a recommendation is given only for the highest-priority
+  application the applicant qualifies for; once given, lower-priority applications are
+  cancelled, freeing seats for lower-ranked applicants — repeats until stable.
+- **One main admission wave** (not multiple rounds needing a "wave" concept in the
+  schema) — rating lists published, one document-confirmation deadline, then leftover
+  seats go to contract.
+- **Confirmation matters for correctness**: a recommendation isn't a final placement —
+  applicants must confirm original documents by a deadline or lose the spot (rolls to the
+  next-ranked applicant). Whether EDBO's actual published `application_status` values
+  distinguish "recommended" from "confirmed" needs checking once real status values are
+  being scraped.
 
 ## Crate topology
 
 ```
 model  (plain domain types — Institution, Offer, Application, Applicant, lookup enums,
-        and eventually PlacementResult. Minimal deps: serde, thiserror, strum,
-        strum_macros, num_enum, bigdecimal. NO reqwest/sqlx/aes/regex.)
+        and eventually PlacementResult. Minimal deps: num_enum, strum. NO reqwest/sqlx.)
   ^                              ^
   |                              |
 scraper                     placement
@@ -100,299 +226,162 @@ scraper                     placement
 ```
 
 **Why split `model` out at all:** `placement` needs to read the same domain types
-`scraper` produces, but needs none of `scraper`'s other dependencies (HTTP, crypto, regex
-HTML-scraping). Cargo compiles a whole crate's dependency graph as a unit — depending on
-all of `scraper` just to see its structs would drag all of that in for no reason. This is
-the same test that justified the `dto`/`model` split one level down: real, independent
-consumers with genuinely different dependency needs, not abstraction for its own sake.
+`scraper` produces, but needs none of `scraper`'s other dependencies (HTTP, crypto, and
+eventually a headless browser). Cargo compiles a whole crate's dependency graph as a
+unit — depending on all of `scraper` just to see its structs would drag all of that in
+for no reason.
 
-**Orphan-rule consequence:** today, `impl TryFrom<InstitutionDto> for Institution` lives
-in `model/institution.rs`. Once `Institution` moves to the separate `model` crate while
-`InstitutionDto` stays in `scraper`, that `impl` becomes illegal — Rust's orphan rule
-requires either the trait or the implemented type to be local to the crate doing the
-`impl`, and neither `TryFrom` (std) nor `Institution` (now in `model`) would be local to
-`scraper`. Fix: replace the trait impl with a plain free function living in `scraper`
-(which owns `dto` and depends on `model`, so it can see both), e.g.
-`fn institution_from_dto(dto: InstitutionDto) -> Result<model::Institution, ModelError>`.
-Finer-grained conversions that stay entirely within `model` (e.g.
-`InstitutionCategory::try_from(i16)`) are unaffected — this only hits the
-whole-DTO-struct-to-whole-domain-struct conversions.
+**Orphan-rule note, corrected from an earlier version of this doc:** `impl
+TryFrom<InstitutionDto> for Institution` lives in `scraper` even though `Institution` (the
+`Self` type) is defined in the separate `model` crate — and this is **legal**, confirmed by
+the fact it compiles cleanly today. An earlier version of this plan incorrectly predicted
+this would violate the orphan rule and need to become a free function. That was wrong:
+Rust's orphan rule only requires *some* local type to appear somewhere in the impl
+header — it doesn't have to be `Self`. Since `InstitutionDto` (local to `scraper`) appears
+as `TryFrom`'s generic parameter, `impl TryFrom<InstitutionDto> for Institution` satisfies
+the rule even though `Institution` itself is foreign. This pattern is reusable verbatim for
+every future entity (`impl TryFrom<OfferDto> for Offer`, etc.) — no free-function
+workaround needed anywhere in this codebase.
 
 ## Database: one Postgres database, three schemas
 
 Not three databases — Postgres cannot join or foreign-key across separate databases
-without extensions (`postgres_fdw`/`dblink`), which is real operational overhead for
-something `placement` would need constantly. Schemas (namespaces within one database) join
-and FK freely, need only one connection/pool, and migrations are just SQL
-(`CREATE SCHEMA foo;` is a normal migration statement) — so they give the same logical
-separation with none of the cross-database cost.
+without extensions (`postgres_fdw`/`dblink`), real operational overhead for something
+`placement` would need constantly. Schemas (namespaces within one database) join and FK
+freely, need only one connection/pool, and migrations are just SQL — already reflected in
+`scraper/migrations/001_setup.sql`:
+- **`common`** — reference/lookup tables + `offer`/`offers_institutions` (anything that
+  isn't a real person's data). Written by `scraper`.
+- **`scraped`** — `applicant`/`application` (the actual PII-bearing scraped input).
+  Written by `scraper`; read-only for `placement`.
+- **`placement`** — algorithm output (design TBD). Written by `placement`; read by
+  `server` to serve to users.
 
-Three schemas, matching who writes what:
-- **`common`** — reference/lookup tables that both `scraper` and `placement` (and later
-  `server`, for labeling results) read: `institution`, `region`, `degree`, `study_form`,
-  `offer_type`, `ownership_form`, `institution_category`, `knowledge_field`, `speciality`,
-  `application_status`. Written by `scraper`.
-- **`scraped`** — EDBO input data: `offer`, `offers_institutions`, `application`,
-  `applicant`. Written by `scraper`; read-only for `placement`.
-- **`placement`** — algorithm output (design TBD when that phase starts, something like
-  a `result` table: which applicant got which offer, or none). Written by `placement`;
-  read by `server` to serve to users.
+**Why worth the extra verbosity of schema-qualified table names:** schemas are a real
+Postgres permission boundary (`GRANT`/`REVOKE` per schema per role). Since `server` is
+meant to eventually serve placement results to end users, a role that only serves results
+publicly can eventually be granted access to `placement`+`common` only, never `scraped` —
+a bug in the results-serving path can't leak raw scraped PII.
 
-Nothing left in bare `public` — every table lives in one of the three named schemas, for
-clarity.
+**Migration ownership**: `scraper/migrations/` owns `common`+`scraped` (schema-qualified
+throughout, including the `offers_institutions.offer_id → offer.id` FK). A future
+`placement` crate embeds its own migrations owning just the `placement` schema, with its
+own `sqlx::migrate!()` call against the same database — safe as long as migration version
+numbers don't collide between the two crates' migration folders (timestamp-based naming
+from `sqlx migrate add` avoids this by construction).
 
-**Why this is worth the (small) extra verbosity of schema-qualifying table names in raw
-SQL:** schemas are a real Postgres permission boundary (`GRANT`/`REVOKE` per schema per
-role). Given `server` is meant to eventually serve placement results to end users, this
-means a role that only serves results publicly can eventually be granted access to
-`placement`+`common` and nothing in `scraped` — so a bug in the results-serving path can't
-leak raw scraped PII (decrypted applicant names, grades). Not a hypothetical concern for
-this project; it's the stated end goal.
+## Architecture within `scraper`: by entity, struct+impl per concern, no traits
 
-**Migration ownership:** `scraper`'s embedded migrations (`scraper/migrations/`) own
-`common`+`scraped` (create both schemas + all their tables) — this is what
-`scraper/src/database.rs`'s `Database::init` already runs via `sqlx::migrate!()`. The
-future `placement` crate embeds its own migrations owning just the `placement` schema,
-with its own `sqlx::migrate!()` call against the same database. Both run fine against one
-DB as long as migration version numbers don't collide between the two crates' migration
-folders (trivial to ensure — timestamp-based naming from `sqlx migrate add` already avoids
-this by construction).
-
-## Architecture within `scraper`: dropping the Service/Repository trait pattern
-
-`edbo_core` uses a `Service` trait (`new(&Database)`) wrapping a `Repository` trait
+`edbo_core` used a `Service` trait (`new(&Database)`) wrapping a `Repository` trait
 (`new(&Database)`, `is_empty()`), one impl of each per entity — 5 `services/*.rs` + 13
 `repository/*.rs` files, plus `EnumService`, a struct holding 9 repository fields with a
 `build()` method that's 9 copy-pasted `if is_empty { create } else { skip }` blocks.
 
-**Diagnosis: neither trait is ever used polymorphically.** Every call site names the
-concrete type directly — nothing takes a `Box<dyn Repository>` or is generic over
-`Service`. The usual reasons to separate data-access from orchestration behind traits are:
-(a) mock the repository to unit-test business logic without a DB, (b) swap storage
-backends, (c) separate reasons-to-change. Checked against this codebase: (a) isn't
-happening (no mocks, no alternate impls, ever), (b) isn't realistic (`sqlx::query!` is
-already Postgres-schema-bound at compile time), so only (c) has real merit — and (c)
-doesn't require traits or separate files, just separate *functions*.
+**What was actually wrong with that wasn't "a struct with methods" — it was the trait with
+zero polymorphic dispatch anywhere, and the cross-entity god-struct.** Every call site
+named the concrete type directly; nothing took a `Box<dyn Repository>` or was generic over
+`Service`. That diagnosis still holds. What's now settled, based on direct project-owner
+preference: the replacement for "trait + separate Service/Repository files" is **one
+struct per entity per concern, `impl` blocks, no trait** — not free functions. The project
+owner explicitly prefers methods-on-a-struct over bare functions taking the same parameter
+repeatedly, for call-site clarity. Don't push back toward plain functions in review; the
+struct shape itself was never the problem.
 
-### Lookup-table seeding: macro-generated functions, not repository objects
+**The settled per-entity template**, using `institution` (the first fully-built one) as
+the reference:
+```
+scraper/src/institution.rs         // pub mod api; pub mod dto; pub mod errors; pub mod service;
+scraper/src/institution/
+  api.rs      // InstitutionApi — unit struct, associated fns only (HTTP fetch → Vec<Dto>)
+  dto.rs      // InstitutionDto (raw EDBO shape) + impl TryFrom<InstitutionDto> for Institution
+  service.rs  // InstitutionService<'a> { database: &'a Database } — the fetch-or-cache
+              // orchestrator: get() → is_empty() → fetch+insert, or find_all()
+  errors.rs   // InstitutionError — one variant per failure point (dto parse, request,
+              // each SQL op, inconsistent-dictionary-data on read-back)
+```
+Composed into the crate-level `ScraperError` one variant per entity
+(`ScraperError::Institution(#[from] InstitutionError)`, alongside
+`ScraperError::Database(#[from] DbError)`) — not one flat aggregate with generic
+Api/Model/Sql variants. Follow this exact 4-file template for `offer`, `application`,
+`applicant` as they're built: same shape, same naming pattern
+(`<Entity>Api`/`<Entity>Dto`/`<Entity>Service`/`<Entity>Error`).
+
+### Lookup-table seeding — not yet built, but should follow the same convention
 
 `edbo_core`'s 9 "enum-seed" repositories (`degree`, `region`, `study_form`, `offer_type`,
 `ownership_form`, `institution_category`, `status`, plus `knowledge_field`/`speciality`
 which don't fit the simple shape) are structurally identical: check `is_empty()`, if so
-insert every variant of a Rust enum via `strum::IntoEnumIterator`. Replace with one
-`macro_rules!` template generating a plain function per table — keeps full
-`sqlx::query!` compile-time schema checking (macro_rules! expands to a literal token
-stream before `sqlx::query!` ever runs, so each expansion is independently checked), with
-no trait, no struct, no `::new()`:
+insert every variant of a Rust enum via `strum::IntoEnumIterator`. When this gets built,
+it should follow the same struct+impl convention as `institution/service.rs` rather than
+reverting to the macro-generated-free-function shape floated in an earlier version of
+this plan — e.g. a `LookupService` (or one small service per lookup table, matching the
+per-entity template) with methods doing the is-empty-check + seed insert. The
+`sqlx::query!` compile-time-checking constraint still applies (literal SQL per table), so
+whatever shape this takes, each table's insert still needs its own literal query string —
+a `macro_rules!` generating `impl` methods rather than free functions is the way to keep
+that without duplicating 9 near-identical blocks by hand, if that ends up worth doing at
+9-tables scale. Decide the exact shape when this is actually built, using `institution` as
+the baseline convention, not the earlier plain-function sketch.
 
-```rust
-macro_rules! impl_enum_seed {
-    ($fn_name:ident, $enum_ty:ty, $table:literal, $insert_sql:literal) => {
-        pub async fn $fn_name(pool: &PgPool) -> Result<(), EngineError> {
-            let is_empty: bool = sqlx::query_scalar!(
-                concat!("SELECT NOT EXISTS (SELECT 1 FROM ", $table, ")")
-            )
-            .fetch_one(pool).await?.unwrap_or(true);
+## Schema state — resolved items (previously tracked as drift, now consistent)
 
-            if !is_empty { return Ok(()); }
-
-            for variant in <$enum_ty>::iter() {
-                sqlx::query!($insert_sql, variant as i16, variant.to_string())
-                    .execute(pool).await?;
-            }
-            Ok(())
-        }
-    };
-}
-
-impl_enum_seed!(seed_degree, Degree, "common.degree",
-    "INSERT INTO common.degree (id, description) VALUES ($1, $2)");
-impl_enum_seed!(seed_region, Region, "common.region",
-    "INSERT INTO common.region (id, description) VALUES ($1, $2)");
-// ...5 more, one line each
-
-pub async fn seed_lookup_tables(pool: &PgPool) -> Result<(), EngineError> {
-    seed_degree(pool).await?;
-    seed_region(pool).await?;
-    // ...
-    seed_knowledge_field(pool).await?;   // own hand-written fn, doesn't fit the macro shape
-    seed_speciality(pool).await?;        // ditto — keep edbo_core's `define_specialities!`-driven catalog
-    Ok(())
-}
-```
-(Table names above are schema-qualified per the `common` schema decision above.)
-
-### Real entities: one module per entity, layered by visibility not by trait
-
-For the 5 "real" entities (`institution`, `offer`, `offers_university`, `application`,
-`applicant`), merge each `service`+`repository` pair into a single module. Separation of
-concerns is preserved by `pub` vs private function visibility, not by a trait/type
-boundary:
-
-```rust
-// scraper/src/entities/offer.rs
-pub async fn get(
-    pool: &PgPool, offers_with_institutions: &mut [OffersUniversity],
-) -> Result<Vec<Offer>, EngineError> {
-    if is_empty(pool).await? {
-        let list = api::offers::list(offers_with_institutions).await?;
-        for offer in &list {
-            insert(pool, offer).await?;
-        }
-        Ok(list)
-    } else {
-        find_all(pool).await
-    }
-}
-
-async fn is_empty(pool: &PgPool) -> Result<bool, EngineError> { /* SQL, schema.table = scraped.offer */ }
-async fn insert(pool: &PgPool, offer: &Offer) -> Result<(), EngineError> { /* SQL */ }
-async fn find_all(pool: &PgPool) -> Result<Vec<Offer>, EngineError> { /* SQL, shared row-mapping
-    helper if find_by_id also exists in this file — see edbo_core's repository/institution.rs
-    and repository/offer.rs for the row-mapping duplication this avoids */ }
-```
-
-5 files instead of 10, no traits, no `Service::new(&db)`/`Repository::new(&db)`
-construction step. If a module ever gets too large, split it into a `mod sql;` submodule
-at that point — don't pre-split for a size problem that doesn't exist yet.
-
-### Error architecture, flattened
-
-No more `RepositoryError` wrapper type (no "repository" layer left to own it). One flat
-`EngineError` in `errors.rs` (rename to `ScraperError` alongside the `EngineConfig` →
-`ScraperConfig` cleanup mentioned above, whenever convenient):
-
-```rust
-#[derive(Debug, Error)]
-pub enum EngineError {
-    #[error("API Error. {0}")]
-    Api(#[from] ApiError),
-    #[error("Database Error. {0}")]
-    Db(#[from] DbError),           // already exists today
-    #[error("Model Error. {0}")]
-    Model(#[from] ModelError),
-    #[error("SQL Error. {0}")]
-    Sql(#[from] sqlx::Error),
-    #[error("JSON Error. {0}")]
-    Json(#[from] serde_json::Error),  // needed for applicant.grade_components JSONB column
-}
-```
-
-### `Scraper::process()` becomes a flat list of calls, not object construction
-
-```rust
-pub async fn process(&self) -> Result<Context, EngineError> {
-    let db = Database::init(&self.config).await?;
-
-    lookup::seed_lookup_tables(&db.pool).await?;
-    let institutions = entities::institution::get(&db.pool).await?;
-    let mut offers_with_institutions = entities::offer_university::get(&db.pool).await?;
-    let offers = entities::offer::get(&db.pool, &mut offers_with_institutions).await?;
-    let (applications, applicants) = entities::application::get(&db.pool, &offers).await?;
-
-    Ok(Context { applicants, applications, institutions, offers, offers_with_institutions })
-}
-```
-
-## Schema-drift fixes to apply while porting from `edbo_core`
-
-Found by comparing `docs/dbml/schema.dbml`, `scraper/migrations/001_setup.sql` (once
-restored — currently the migration file lives untouched at
-`edbo_core/migrations/001_setup.sql`, needs porting into `scraper/migrations/` with these
-fixes applied and the schema-qualification above), and `edbo_core/src/model/*.rs` — port
-these fixed, don't copy the old types verbatim:
-
-| Drift | Fix |
+| Item | Resolution |
 |---|---|
-| `institution.id`/`parent_id`: `i16` in old model vs SQL `INTEGER` | New model → `i32`/`Option<i32>` |
-| Enum repr `i8` (7 files + `priority.rs`) vs SQL `SMALLINT`(i16) | New model → `#[repr(i16)]`; matches the old repository code's own `// TODO: Fix Warning — casting i16 to i8 may truncate` comments |
-| `application.grade`: DBML `float` / SQL `DECIMAL(10,3)` / old model `f32` | New model → `bigdecimal::BigDecimal` (already a planned dependency); convert once from `ApplyRequestDto.kv: f32` at the DTO→model boundary, not in SQL-access code |
-| Migration missing FK `offers_institutions.offer_id → offer.id` | Add the constraint directly into the new `scraper/migrations/001_setup.sql` — DB is disposable/re-seedable (fetch-or-cache design means nothing is hand-curated), so a clean migration beats a patch |
-| DBML doc drift: `grade` type, `priority_id` vs `priority_code`, `institution_id` vs `university_id`, missing composite-PK annotations, stale `user_id` nullability | Update `docs/dbml/schema.dbml` to match the migration (SQL is source of truth) — follow-up, non-blocking |
+| `institution.id`/`parent_id` width | Both migration and `model::Institution` use `i16`/`Option<i16>` consistently — an earlier version of this plan incorrectly kept asserting these needed to become `i32`/`INTEGER`; that was wrong and has been retracted. Real EDBO data (checked across a full category export) comfortably fits `i16` regardless. |
+| Enum repr (`Region`, `InstitutionCategory`, `OwnershipForm`) | All `#[repr(i16)]` + `Copy, Clone`, matching their `SMALLINT` columns exactly — no casts needed at the `sqlx` boundary. |
+| `institution.registration_year` → `registration_date` | Resolved by renaming + widening rather than parsing: the raw EDBO field is a full `DD.MM.YYYY` date string, not a bare year, so the column/model field is `VARCHAR`/`Option<String>` throughout, storing the raw string as-is (no date parsing — nothing downstream needs to filter/sort by founding date, so there's no reason to build that machinery). |
+| `offers_institutions.offer_id → offer.id` FK | Present in the current migration — no longer missing. |
 
-## Build order
-
-1. **`model` crate**: populate with domain types ported from `edbo_core/src/model/*.rs`,
-   schema-drift fixes applied, `ModelError`. Dependencies: serde, thiserror, strum,
-   strum_macros, num_enum, bigdecimal — confirm nothing else sneaks in.
-2. **`scraper` crate**, leaf-to-root, now depending on `model`:
-   - `errors.rs` — the flattened `EngineError`/`ScraperError` above.
-   - `crypto.rs` — port as-is (verified correct).
-   - `dto/*.rs` — port as-is; for institution data, redesign around the confirmed
-     `.xlsx` opendata response shape (needs `calamine`), not the old JSON shape.
-   - Free conversion functions (`fn institution_from_dto(...) -> Result<model::Institution, ModelError>`
-     etc.) replacing the old `TryFrom<Dto> for Model` impls, per the orphan-rule note above.
-   - `request.rs` + `api.rs`/`api/*.rs` — port with endpoint fixes as EDBO exploration
-     confirms them (institution endpoint confirmed changed; offers/applications
-     unconfirmed, check before assuming the old approach works).
-   - `lookup.rs` (new) — the macro-generated seed functions, schema-qualified to `common`.
-   - `entities/*.rs` (new, replacing `services/`+`repository/`) — merged modules, one per
-     entity, schema-qualified to `scraped` (or `common` for `institution`).
-   - `context.rs` — port as-is.
-   - `scraper.rs` — the flat pipeline shown above, `process()` returning
-     `Result<Context, EngineError>`.
-   - `lib.rs` — declare all new modules.
-   - `migrations/001_setup.sql` — new migration creating `common`+`scraped` schemas and
-     all their tables, schema-drift-fixed.
-3. Build after each step (`cargo build --workspace`) rather than all at once.
-4. `placement` crate — separate future phase, not started. Depends on `model` only.
+**Still pending, not yet relevant** (no `application`/`offer` entity built yet):
+`application.grade`: DBML says `float`, migration says `DECIMAL(10,3)` — when this entity
+is built, model should be `bigdecimal::BigDecimal` (already matches the SQL exactly),
+converting once from the raw DTO's numeric grade at the DTO→model boundary, same pattern
+as `institution`'s conversions. DBML doc drift (`grade` type, `priority_id` vs
+`priority_code`, `institution_id` vs `university_id`, missing composite-PK annotations) —
+update `docs/dbml/schema.dbml` to match the migration (SQL is source of truth) whenever
+convenient, non-blocking.
 
 ## Wire `server` to call `scraper`
 
-Add to `server/Cargo.toml`:
-```toml
-[dependencies]
-scraper = { path = "../scraper" }
-```
-
-In `server/src/main.rs`, after the existing `Logger::from_settings(...)` block:
+`server/src/main.rs` currently builds the pool (`let db = Database::init(...)`) but
+doesn't yet call into `scraper` — unchanged from before, still the next concrete step.
+After the existing `Database::init` block:
 ```rust
-use scraper::{EngineConfig, Scraper};   // rename to ScraperConfig/Scraper once the
-                                         // internal renames above happen
+use scraper::{Scraper, ScraperError};
 // ...
-let engine_config = EngineConfig {
-    database_url: runtime_settings.database_url.clone(),
-};
-
-let _context = Scraper::new(&engine_config)
+Scraper::new(&db.pool)
     .process()
     .await
     .unwrap_or_else(|error| {
         log::error!("Scraper process failed. {error}");
         std::process::exit(1);
     });
-
-log::info!("Process finished successfully.");
 ```
 Matches the file's existing `unwrap_or_else` + exit(1) pattern; uses `log::error!` instead
-of `eprintln!` since this call happens after the logger is initialized. `_context` is
-discarded for now — nothing downstream consumes scraped data yet. Once `placement` exists,
-`server` will also depend on it and call it after `scraper` finishes.
+of `eprintln!` since this happens after the logger is initialized.
 
-## Explicitly out of scope for this pass
+## Explicitly out of scope for now
 
 - Building the `placement` crate itself (algorithm design) — separate future phase.
-- Further EDBO endpoint discovery beyond institutions (offers/applications) — check before
-  assuming the old approach works, but don't block this pass on it.
+- Implementing the headless-browser fetch path for offers/applications — decided on
+  approach, not yet built.
 - **Never** `vstup.osvita.ua` or any non-EDBO source — off the table by explicit project
   rule regardless of how EDBO scraping goes.
-- `docs/dbml/schema.dbml` doc fixes and a `placement`-schema dbml doc — small
-  follow-ups, not blocking.
-- `api/*.rs` request-boilerplate deduplication (client/headers/ticker/retry-loop) — small,
-  but interleaved with delicate per-endpoint parsing; better done once/if endpoint changes
-  force a rewrite of that code anyway.
+- `docs/dbml/schema.dbml` doc fixes and a `placement`-schema dbml doc — small follow-ups.
 
 ## Verification
 
-1. After each build-order step: `cargo build --workspace` — confirm no errors before
-   moving to the next layer.
-2. Once `crypto` is ported and declared: `cargo test --package scraper crypto::tests` —
-   should pass 3 golden-value tests.
-3. `cargo clippy --workspace --all-targets` — confirm no unexpected pedantic/nursery
-   warnings in the newly-written code.
-4. End-to-end: bring up `docker-compose.dev.yaml`'s `db`, run `cargo run --package server`
-   against it, and watch how far the real pipeline gets against live EDBO — specifically
-   whether the redesigned institution fetch (xlsx-based) succeeds, and whether
-   offer/application scraping succeeds or needs the same kind of endpoint rework. This
-   result directly answers how much further EDBO-side exploration is needed before the
-   scraper is genuinely done.
+1. After each build step: `cargo check --package scraper --package model` (or
+   `--workspace` once `server` is wired) — confirm no errors before moving on. Currently
+   clean.
+2. `cargo clippy --package scraper --package model --all-targets` — currently zero
+   warnings including `pedantic`+`nursery`; keep it that way as `offer`/`application`/
+   `applicant` are added following the `institution` template.
+3. Once `crypto` is ported: `cargo test --package scraper crypto::tests` — should pass 3
+   golden-value tests.
+4. End-to-end: bring up `docker-compose.dev.yaml`'s `db`, wire `server` per above, run
+   `cargo run --package server` against it, confirm `Database::configure` correctly
+   detects/creates the `common`+`scraped` schemas and tables, then confirm
+   `InstitutionService::get()` populates `common.institution` on first run and reads it
+   back (skipping the HTTP fetch) on a second run. Offers/applications next, once the
+   headless-browser path is built.
