@@ -1,0 +1,134 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, name, parent_id, short_name, english_name, is_from_crimea,\n                registration_date, category_id, ownership_form_id, region_id\n         FROM common.institution",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "parent_id",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "parent_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "short_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "short_name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "english_name",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "english_name"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_from_crimea",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "is_from_crimea"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "registration_date",
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "registration_date"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "category_id",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "category_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "ownership_form_id",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "ownership_form_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "region_id",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "common.institution",
+            "name": "region_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "9527e180577bf9c05fbe6249dc5d17be047b0dd6026266c7c4454c6c0811304a"
+}
