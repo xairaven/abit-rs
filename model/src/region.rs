@@ -5,8 +5,6 @@ use strum_macros::{Display, EnumString};
 #[repr(i16)]
 pub enum Region {
     Every = 0,
-    #[strum(serialize = "")]
-    Unknown = 999,
 
     #[strum(serialize = "Київ")]
     KyivCity = 80,
