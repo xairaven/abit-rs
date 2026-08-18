@@ -25,4 +25,5 @@ impl Scraper {
 }
 
 mod database;
+mod dto;
 mod errors;
