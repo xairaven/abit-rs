@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::database::Database;
 use crate::logs::Logger;
 use crate::settings::RuntimeSettings;
+use scraper::Scraper;
 
 #[tokio::main]
 async fn main() -> () {
@@ -36,6 +37,14 @@ async fn main() -> () {
     log::info!("Database successfully initialized.");
 
     log::info!("Starting process...");
+
+    Scraper::new(&db.pool)
+        .process()
+        .await
+        .unwrap_or_else(|error| {
+            eprintln!("Error occurred. {error}");
+            std::process::exit(1);
+        });
 }
 
 mod config;
