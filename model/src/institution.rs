@@ -13,8 +13,8 @@ pub struct Institution {
     pub short_name: Option<String>,
     pub english_name: Option<String>,
     pub is_from_crimea: bool,
-    pub registration_year: Option<i16>,
+    pub registration_date: Option<String>,
     pub category: InstitutionCategory,
     pub ownership_form: OwnershipForm,
-    pub region: Region,
+    pub region: Option<Region>,
 }

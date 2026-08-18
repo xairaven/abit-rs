@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS common.institution (
     short_name VARCHAR,
     english_name VARCHAR,
     is_from_crimea BOOLEAN NOT NULL,
-    registration_year INT2,
+    registration_date VARCHAR,
     category_id INT2 NOT NULL,
     ownership_form_id INT2 NOT NULL,
-    region_id INT2 NOT NULL,
+    region_id INT2,
 
     CONSTRAINT fk_institution_category FOREIGN KEY (category_id) REFERENCES common.institution_category(id),
     CONSTRAINT fk_institution_ownership FOREIGN KEY (ownership_form_id) REFERENCES common.ownership_form(id),
