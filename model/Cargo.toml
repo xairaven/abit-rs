@@ -20,4 +20,3 @@ workspace = true
 num_enum = "0.7.6"
 strum = "0.28.0"
 strum_macros = "0.28.0"
-

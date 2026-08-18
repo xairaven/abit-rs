@@ -1,8 +1,8 @@
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::{Display, EnumString};
 
-#[derive(Debug, IntoPrimitive, TryFromPrimitive, EnumString, Display)]
-#[repr(u16)]
+#[derive(Debug, Copy, Clone, IntoPrimitive, TryFromPrimitive, EnumString, Display)]
+#[repr(i16)]
 pub enum InstitutionCategory {
     #[strum(serialize = "Заклад вищої освіти")]
     HigherEducation = 1,
