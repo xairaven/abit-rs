@@ -3,7 +3,7 @@
 pub use crate::errors::ScraperError;
 
 use crate::database::Database;
-use crate::institution::InstitutionContext;
+use crate::institution::service::InstitutionService;
 use sqlx::PgPool;
 
 #[derive(Debug)]
@@ -21,7 +21,7 @@ impl Scraper {
     pub async fn process(&self) -> Result<(), ScraperError> {
         Database::configure(&self.database).await?;
 
-        let institutions = InstitutionContext::new(&self.database).get().await?;
+        let institutions = InstitutionService::new(&self.database).get().await?;
         log::info!("Institutions ready: {} total.", institutions.len());
 
         Ok(())

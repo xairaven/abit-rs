@@ -33,6 +33,12 @@ pub enum InstitutionError {
     #[error("Is table empty check. {0}")]
     IsEmpty(sqlx::Error),
 
-    #[error("Inconsistent dictionary data. {0}")]
-    InconsistentDictionaryData(String),
+    #[error("Inconsistent data in category dictionary. {0}")]
+    InconsistentCategoryData(String),
+
+    #[error("Inconsistent data in ownership forms dictionary. {0}")]
+    InconsistentOwnershipFormData(String),
+
+    #[error("Inconsistent data in region dictionary. {0}")]
+    InconsistentRegionData(String),
 }
