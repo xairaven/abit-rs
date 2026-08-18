@@ -2,7 +2,7 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::{Display, EnumString};
 
 #[derive(Debug, IntoPrimitive, TryFromPrimitive, EnumString, Display)]
-#[repr(i16)]
+#[repr(u16)]
 pub enum OwnershipForm {
     #[strum(serialize = "Державна")]
     State = 1,
