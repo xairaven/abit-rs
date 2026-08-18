@@ -1,12 +1,12 @@
 use crate::database::DbError;
-use crate::dto::DtoError;
+use crate::institution::errors::InstitutionError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ScraperError {
-    #[error("Database Error. {0}")]
+    #[error("Database. {0}")]
     Database(#[from] DbError),
 
-    #[error("DTO Conversion. {0}")]
-    Dto(#[from] DtoError),
+    #[error("Institution. {0}")]
+    Institution(#[from] InstitutionError),
 }

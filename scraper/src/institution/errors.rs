@@ -1,11 +1,9 @@
 use thiserror::Error;
 
-pub mod institution;
-
 #[derive(Debug, Error)]
-pub enum DtoError {
-    #[error("Institution Category. {0}")]
-    InstitutionCategory(strum::ParseError),
+pub enum InstitutionError {
+    #[error("Category. {0}")]
+    Category(strum::ParseError),
 
     #[error("Ownership Form. {0}")]
     OwnershipForm(strum::ParseError),
