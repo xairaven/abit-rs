@@ -71,10 +71,10 @@ impl Database {
         .await
         .map_err(DbError::TableAmountValidation)?;
 
-        let result = exists_schema_common
+        let result = !(exists_schema_common
             && exists_schema_scraped
             && has_tables_scraped
-            && has_tables_common;
+            && has_tables_common);
 
         Ok(result)
     }
