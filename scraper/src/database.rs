@@ -12,6 +12,10 @@ impl Database {
         Self { pool }
     }
 
+    pub const fn pool(&self) -> &PgPool {
+        &self.pool
+    }
+
     pub async fn configure(&self) -> Result<(), DbError> {
         let is_migration_needed = self.is_migration_needed().await?;
         if is_migration_needed {
