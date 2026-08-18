@@ -43,17 +43,17 @@ impl TryFrom<InstitutionDto> for Institution {
         let registration_date = Some(value.registration_date).filter(|s| !s.is_empty());
 
         let category = InstitutionCategory::from_str(&value.category)
-            .map_err(Self::Error::Category)?;
+            .map_err(Self::Error::CategoryDto)?;
 
         let ownership_form = OwnershipForm::from_str(&value.ownership_form)
-            .map_err(Self::Error::OwnershipForm)?;
+            .map_err(Self::Error::OwnershipFormDto)?;
 
         let region = value
             .region
             .filter(|region| !region.is_empty())
             .map(|region| Region::from_str(&region))
             .transpose()
-            .map_err(Self::Error::Region)?;
+            .map_err(Self::Error::RegionDto)?;
 
         let institution = Self {
             title: value.title,
