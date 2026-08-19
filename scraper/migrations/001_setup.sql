@@ -3,18 +3,17 @@ CREATE SCHEMA common;
 
 CREATE TABLE IF NOT EXISTS common.institution_category (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL,
-    code INT2
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.ownership_form (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.region (
     id INT2 PRIMARY KEY,
-    name VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.institution (
