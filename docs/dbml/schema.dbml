@@ -1,20 +1,20 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
+// Visualize: https://dbdiagram.io/d
 
 Table institution_category {
   id integer [primary key]
-  description varchar [not null]
-  code integer
+  title varchar [not null]
 }
 
 Table ownership_form {
   id integer [primary key]
-  description varchar [not null]
+  title varchar [not null]
 }
 
 Table region {
   id integer [primary key]
-  name varchar [not null]
+  title varchar [not null]
 }
 
 Table institution {
@@ -24,7 +24,7 @@ Table institution {
   short_name varchar
   english_name varchar
   is_from_crimea bool [not null]
-  registration_year integer
+  registration_date varchar
   category_id integer [not null]
   ownership_form_id integer [not null]
   region_id integer [not null]
@@ -36,22 +36,22 @@ Ref institution_region: institution.region_id > region.id
 
 Table application_status {
   id integer [primary key]
-  description varchar [not null]
+  title varchar [not null]
 }
 
 Table study_form {
   id integer [primary key]
-  description varchar [not null]
+  title varchar [not null]
 }
 
 Table knowledge_field {
   code char [primary key]
-  name varchar [not null]
+  title varchar [not null]
 }
 
 Table speciality {
   code varchar [primary key]
-  name varchar [not null]
+  title varchar [not null]
   knowledge_field char [not null]
 }
 
@@ -59,12 +59,12 @@ Ref knowledge_field_speciality: speciality.knowledge_field > knowledge_field.cod
 
 Table degree {
   id integer [primary key]
-  description varchar [not null]
+  title varchar [not null]
 }
 
 Table offer_type {
   id integer [primary key]
-  description varchar [not null]
+  title varchar [not null]
 }
 
 Table applicant {
@@ -74,12 +74,13 @@ Table applicant {
 }
 
 Table application {
-  offer_id integer [not null]
   number_in_list integer [not null]
   status_id integer [not null]
   grade float [not null]
   priority_id integer [not null]
-  user_id integer
+
+  offer_id integer [not null]
+  user_id integer [not null]
 }
 
 Ref application_user: application.user_id > applicant.id
@@ -95,9 +96,9 @@ Table offer {
   speciality_code varchar [not null]
   type_id integer [not null]
   master_type varchar
+  study_form_id integer [not null]
   license_volume integer [not null]
   budgetary_places integer [not null]
-  study_form_id integer [not null]
 }
 
 Ref offer_study_type: offer.type_id > offer_type.id

@@ -35,22 +35,22 @@ CREATE TABLE IF NOT EXISTS common.institution (
 
 CREATE TABLE IF NOT EXISTS common.application_status (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.study_form (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.knowledge_field (
     code CHAR PRIMARY KEY,
-    name VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.speciality (
     code VARCHAR PRIMARY KEY,
-    name VARCHAR NOT NULL,
+    title VARCHAR NOT NULL,
     knowledge_field CHAR NOT NULL,
 
     CONSTRAINT fk_speciality_field FOREIGN KEY (knowledge_field) REFERENCES common.knowledge_field(code)
@@ -58,12 +58,12 @@ CREATE TABLE IF NOT EXISTS common.speciality (
 
 CREATE TABLE IF NOT EXISTS common.degree (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.offer_type (
     id INT2 PRIMARY KEY,
-    description VARCHAR NOT NULL
+    title VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS common.offer (
